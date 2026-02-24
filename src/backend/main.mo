@@ -1,13 +1,14 @@
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
 import Text "mo:core/Text";
-import Runtime "mo:core/Runtime";
-import Iter "mo:core/Iter";
+import Array "mo:core/Array";
 import List "mo:core/List";
 import Time "mo:core/Time";
-import Migration "migration";
+import Runtime "mo:core/Runtime";
+import Iter "mo:core/Iter";
 
-(with migration = Migration.run)
+
+
 actor {
   type KeyId = Nat;
   type InjectorId = Nat;
@@ -78,6 +79,13 @@ actor {
   var nextResellerId : Nat = 0;
 
   var keyCreditCost : Nat = 1;
+
+  type DeviceRegistry = {
+    deviceId : Text;
+    used : Time.Time;
+  };
+
+  let deviceRegistries = Map.empty<Nat, List.List<DeviceRegistry>>();
 
   var panelSettings : PanelSettings = {
     panelName = "Game Injector";
@@ -258,7 +266,6 @@ actor {
     };
   };
 
-  // Validate Key and Track Device
   public shared ({ caller }) func validateKey(keyId : KeyId, deviceId : Text) : async Bool {
     let key = getKey(keyId);
 
@@ -380,8 +387,16 @@ actor {
     injectors.values().toArray();
   };
 
-  public query ({ caller }) func getDevicesForKey(_ : KeyId) : async [Text] {
-    List.empty<Text>().toArray();
+  public query ({ caller }) func getDevicesForKey(keyId : KeyId) : async [(Text, Time.Time)] {
+    switch (deviceRegistries.get(keyId)) {
+      case (null) {
+        [];
+      };
+      case (?devicesList) {
+        let devices = devicesList.toArray();
+        devices.map(func(device) { (device.deviceId, device.used) });
+      };
+    };
   };
 
   public shared ({ caller }) func updateAccountUsername(newUsername : Text) : async () {
@@ -422,5 +437,93 @@ actor {
 
   public query ({ caller }) func getPanelSettings() : async PanelSettings {
     panelSettings;
+  };
+
+  // Public HTTP endpoint for login verification (no authentication required)
+  public query ({ caller }) func verifyLogin(key : Text, deviceId : Text) : async {
+    valid : Bool;
+    message : Text;
+    status : Text;
+  } {
+    // Find the key by key value
+    let keyEntry = keys.toArray().find(
+      func((_, entry)) {
+        Text.equal(entry.key, key);
+      }
+    );
+
+    switch (keyEntry) {
+      case (null) {
+        { valid = false; message = "Key not found"; status = "error" };
+      };
+      case (?(_, loginKey)) {
+        // Check for blocked key
+        if (loginKey.blocked) {
+          return { valid = false; message = "Key is blocked"; status = "error" };
+        };
+
+        // Check for expired key
+        switch (loginKey.expires) {
+          case (null) {};
+          case (?expires) {
+            if (Time.now() >= expires) {
+              return {
+                valid = false;
+                message = "Key has expired";
+                status = "error";
+              };
+            };
+          };
+        };
+
+        // Check device count
+        switch (loginKey.maxDevices) {
+          case (null) {};
+          case (?maxDevices) {
+            if (loginKey.deviceCount >= maxDevices) {
+              return {
+                valid = false;
+                message = "Device count limit reached";
+                status = "error";
+              };
+            };
+
+            // Check if device has already been used
+            let deviceUsed = switch (deviceRegistries.get(loginKey.id)) {
+              case (null) { false };
+              case (?devicesList) {
+                let deviceArray = devicesList.toArray();
+                let found = deviceArray.find(
+                  func(device) { Text.equal(device.deviceId, deviceId) }
+                );
+                switch (found) {
+                  case (null) { false };
+                  case (?_) { true };
+                };
+              };
+            };
+
+            if (deviceUsed) {
+              return {
+                valid = false;
+                message = "Device already used";
+                status = "error";
+              };
+            };
+          };
+        };
+
+        // Update device records
+        let newDeviceList = switch (deviceRegistries.get(loginKey.id)) {
+          case (null) { List.empty<DeviceRegistry>() };
+          case (?existing) { existing };
+        };
+        newDeviceList.add({ deviceId; used = Time.now() });
+        deviceRegistries.add(loginKey.id, newDeviceList);
+
+        // Return success response
+        { valid = true; message = "Key is valid"; status = "success" };
+      };
+    };
   };
 };

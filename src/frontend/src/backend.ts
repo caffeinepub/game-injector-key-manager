@@ -156,7 +156,7 @@ export interface backendInterface {
     getAllInjectors(): Promise<Array<Injector>>;
     getAllKeys(): Promise<Array<LoginKey>>;
     getAllResellers(): Promise<Array<Reseller>>;
-    getDevicesForKey(arg0: KeyId): Promise<Array<string>>;
+    getDevicesForKey(keyId: KeyId): Promise<Array<[string, Time]>>;
     getInjectorById(injectorId: InjectorId): Promise<Injector>;
     getKeyById(keyId: KeyId): Promise<LoginKey>;
     getKeyCreditCost(): Promise<bigint>;
@@ -172,6 +172,11 @@ export interface backendInterface {
     updateInjectorRedirect(injectorId: InjectorId, newRedirect: string | null): Promise<void>;
     updatePanelSettings(newSettings: PanelSettings): Promise<void>;
     validateKey(keyId: KeyId, deviceId: string): Promise<boolean>;
+    verifyLogin(key: string, deviceId: string): Promise<{
+        status: string;
+        valid: boolean;
+        message: string;
+    }>;
 }
 import type { AdminAccount as _AdminAccount, Injector as _Injector, InjectorId as _InjectorId, KeyId as _KeyId, KeyRequest as _KeyRequest, LoginKey as _LoginKey, Password as _Password, Reseller as _Reseller, ResellerId as _ResellerId, Time as _Time, Username as _Username } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -386,7 +391,7 @@ export class Backend implements backendInterface {
             return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getDevicesForKey(arg0: KeyId): Promise<Array<string>> {
+    async getDevicesForKey(arg0: KeyId): Promise<Array<[string, Time]>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getDevicesForKey(arg0);
@@ -607,6 +612,24 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.validateKey(arg0, arg1);
+            return result;
+        }
+    }
+    async verifyLogin(arg0: string, arg1: string): Promise<{
+        status: string;
+        valid: boolean;
+        message: string;
+    }> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.verifyLogin(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.verifyLogin(arg0, arg1);
             return result;
         }
     }

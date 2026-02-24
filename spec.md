@@ -2,72 +2,65 @@
 
 ## Current State
 
-The application currently supports:
-- **Admin authentication**: Username/password login (Gaurav/Gaurav_20)
-- **Key management**: Create keys with customizable duration, device limits, and injector assignment
-- **Injector management**: Add injectors via APK upload or manual entry, with auto-redirect configuration
-- **Key controls**: Block/unblock keys, track device usage
-- **Customization**: Panel name and theme presets (5 themes)
+The application has three authentication screens:
+1. **Welcome/Role Selector** - Has purple theme with live animated particles, gradient backgrounds, custom Orbitron font, and reactive glowing buttons
+2. **Admin Login** - Basic card design with standard Tailwind theme, no animations
+3. **Reseller Login** - Basic card design with standard Tailwind theme, no animations
+
+The admin and reseller login pages currently use a simple card layout with standard background, lacking the visual polish and dynamic effects of the welcome screen.
 
 ## Requested Changes (Diff)
 
 ### Add
-- **Reseller user type**: New account type separate from admin
-- **Reseller authentication**: Separate login flow with username/password
-- **Reseller management interface (Admin)**: 
-  - Create reseller accounts with username/password
-  - Assign/modify credit balance for resellers
-  - View all resellers and their credit balances
-  - Delete reseller accounts
-- **Credit system**: 
-  - Each key creation costs credits (configurable by admin)
-  - Resellers can only create keys if they have sufficient credits
-  - Admin has unlimited keys (no credit cost)
-- **Reseller dashboard**: 
-  - View own credit balance
-  - Create keys for any injector (consuming credits)
-  - View keys created by the reseller
-  - Cannot access injector management or settings
+- Live animated particle/orb system to admin login background
+- Live animated particle/orb system to reseller login background
+- Moving diagonal gradient lines effect to both login pages
+- Purple gradient animated background (from-purple-950 via-violet-900 to-purple-950) to both pages
+- Orbitron custom gaming font for headings on both login pages
+- Glowing icon effect with pulse animation on both pages
+- Backdrop blur and purple-tinted glass morphism effect to login cards
+- Purple color scheme matching welcome screen to both pages
 
 ### Modify
-- **Login flow**: Add option to choose between Admin and Reseller login
-- **Key creation**: Deduct credits from reseller on key creation
-- **Backend API**: Extend to support reseller accounts, credit management, and role-based permissions
+- AdminLogin component background from basic `bg-background` to purple-themed animated background
+- ResellerLogin component background from basic `bg-background` to purple-themed animated background
+- Login card styling to use purple-tinted glass morphism with border glow effects
+- Heading fonts to use Orbitron font family
+- Icon containers to have glowing pulse animations
+- Color palette from neutral to purple/violet/fuchsia gradient theme
 
 ### Remove
-- None
+- None (preserving all functionality, only enhancing visual design)
 
 ## Implementation Plan
 
-### Backend (Motoko)
-1. Add Reseller data type with username, password, credits, created timestamp
-2. Add reseller CRUD operations (create, authenticate, get all, update credits, delete)
-3. Add credit cost configuration for key creation (default: 1 credit per key)
-4. Modify createKey to accept optional reseller ID and deduct credits
-5. Add role-based authorization checks for injector/settings operations
-6. Add getResellerKeys(resellerId) to fetch keys created by specific reseller
+1. **Update AdminLogin.tsx**
+   - Replace plain background with layered purple gradient background
+   - Add floating animated particles/orbs (5-6 elements with different sizes and animation timings)
+   - Add moving diagonal gradient lines overlay
+   - Convert login card to glass morphism style with purple tint and backdrop blur
+   - Apply Orbitron font to "Admin Authentication" heading
+   - Add glowing pulse effect to Shield icon container
+   - Update color scheme to purple/fuchsia/violet palette
 
-### Frontend
-1. **LoginSelector component**: Choose between Admin/Reseller login
-2. **ResellerLogin component**: Login form for resellers
-3. **Admin - Resellers tab**: 
-   - Table showing all resellers (username, credits, created date)
-   - "Add Reseller" dialog with username/password/initial credits
-   - "Add Credits" action for each reseller
-   - "Delete Reseller" action
-4. **Reseller Dashboard**:
-   - Header showing credit balance
-   - CreateKeyDialog with credit cost display
-   - KeysTable filtered to reseller's keys only
-   - No access to Injectors or Settings tabs
-5. Update AdminLogin to use new login selector
-6. Add role context/state to manage Admin vs Reseller views
+2. **Update ResellerLogin.tsx**
+   - Apply same background treatment as AdminLogin (purple gradients, particles, diagonal lines)
+   - Convert login card to matching glass morphism style
+   - Apply Orbitron font to "Reseller Login" heading  
+   - Add glowing pulse effect to Users icon container
+   - Update color scheme to match purple theme
+
+3. **Ensure consistency**
+   - Both login pages should visually match the welcome screen's aesthetic
+   - Maintain all existing functionality (authentication logic, error handling, back button)
+   - Keep form inputs and buttons functional
+   - Preserve responsive design
 
 ## UX Notes
-- Login screen shows two clear options: "Admin Login" and "Reseller Login"
-- Resellers see prominent credit balance in dashboard header
-- Key creation dialog shows "Cost: X credits" for resellers
-- Insufficient credits show error toast before key creation
-- Admin can set credit cost per key in Settings (default: 1)
-- Resellers only see keys they created, not all keys
-- Clean separation between admin and reseller capabilities
+
+- The purple animated theme creates visual continuity across all three authentication screens
+- Live particle animations provide engaging visual feedback without distracting from login functionality
+- Glass morphism effect makes login cards feel modern and premium
+- Orbitron font reinforces gaming/tech aesthetic matching the injector dashboard theme
+- All animations should be smooth and performant (CSS-based, no heavy JS)
+- Maintain accessibility - ensure text contrast remains readable against animated backgrounds

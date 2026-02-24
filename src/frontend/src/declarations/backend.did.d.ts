@@ -74,7 +74,7 @@ export interface _SERVICE {
   'getAllInjectors' : ActorMethod<[], Array<Injector>>,
   'getAllKeys' : ActorMethod<[], Array<LoginKey>>,
   'getAllResellers' : ActorMethod<[], Array<Reseller>>,
-  'getDevicesForKey' : ActorMethod<[KeyId], Array<string>>,
+  'getDevicesForKey' : ActorMethod<[KeyId], Array<[string, Time]>>,
   'getInjectorById' : ActorMethod<[InjectorId], Injector>,
   'getKeyById' : ActorMethod<[KeyId], LoginKey>,
   'getKeyCreditCost' : ActorMethod<[], bigint>,
@@ -93,6 +93,10 @@ export interface _SERVICE {
   >,
   'updatePanelSettings' : ActorMethod<[PanelSettings], undefined>,
   'validateKey' : ActorMethod<[KeyId, string], boolean>,
+  'verifyLogin' : ActorMethod<
+    [string, string],
+    { 'status' : string, 'valid' : boolean, 'message' : string }
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

@@ -80,7 +80,11 @@ export const idlService = IDL.Service({
   'getAllInjectors' : IDL.Func([], [IDL.Vec(Injector)], ['query']),
   'getAllKeys' : IDL.Func([], [IDL.Vec(LoginKey)], ['query']),
   'getAllResellers' : IDL.Func([], [IDL.Vec(Reseller)], ['query']),
-  'getDevicesForKey' : IDL.Func([KeyId], [IDL.Vec(IDL.Text)], ['query']),
+  'getDevicesForKey' : IDL.Func(
+      [KeyId],
+      [IDL.Vec(IDL.Tuple(IDL.Text, Time))],
+      ['query'],
+    ),
   'getInjectorById' : IDL.Func([InjectorId], [Injector], ['query']),
   'getKeyById' : IDL.Func([KeyId], [LoginKey], ['query']),
   'getKeyCreditCost' : IDL.Func([], [IDL.Nat], ['query']),
@@ -96,6 +100,17 @@ export const idlService = IDL.Service({
   'updateInjectorRedirect' : IDL.Func([InjectorId, IDL.Opt(IDL.Text)], [], []),
   'updatePanelSettings' : IDL.Func([PanelSettings], [], []),
   'validateKey' : IDL.Func([KeyId, IDL.Text], [IDL.Bool], []),
+  'verifyLogin' : IDL.Func(
+      [IDL.Text, IDL.Text],
+      [
+        IDL.Record({
+          'status' : IDL.Text,
+          'valid' : IDL.Bool,
+          'message' : IDL.Text,
+        }),
+      ],
+      ['query'],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -173,7 +188,11 @@ export const idlFactory = ({ IDL }) => {
     'getAllInjectors' : IDL.Func([], [IDL.Vec(Injector)], ['query']),
     'getAllKeys' : IDL.Func([], [IDL.Vec(LoginKey)], ['query']),
     'getAllResellers' : IDL.Func([], [IDL.Vec(Reseller)], ['query']),
-    'getDevicesForKey' : IDL.Func([KeyId], [IDL.Vec(IDL.Text)], ['query']),
+    'getDevicesForKey' : IDL.Func(
+        [KeyId],
+        [IDL.Vec(IDL.Tuple(IDL.Text, Time))],
+        ['query'],
+      ),
     'getInjectorById' : IDL.Func([InjectorId], [Injector], ['query']),
     'getKeyById' : IDL.Func([KeyId], [LoginKey], ['query']),
     'getKeyCreditCost' : IDL.Func([], [IDL.Nat], ['query']),
@@ -197,6 +216,17 @@ export const idlFactory = ({ IDL }) => {
       ),
     'updatePanelSettings' : IDL.Func([PanelSettings], [], []),
     'validateKey' : IDL.Func([KeyId, IDL.Text], [IDL.Bool], []),
+    'verifyLogin' : IDL.Func(
+        [IDL.Text, IDL.Text],
+        [
+          IDL.Record({
+            'status' : IDL.Text,
+            'valid' : IDL.Bool,
+            'message' : IDL.Text,
+          }),
+        ],
+        ['query'],
+      ),
   });
 };
 

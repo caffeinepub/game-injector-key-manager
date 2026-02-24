@@ -74,7 +74,7 @@ export interface backendInterface {
     getAllInjectors(): Promise<Array<Injector>>;
     getAllKeys(): Promise<Array<LoginKey>>;
     getAllResellers(): Promise<Array<Reseller>>;
-    getDevicesForKey(arg0: KeyId): Promise<Array<string>>;
+    getDevicesForKey(keyId: KeyId): Promise<Array<[string, Time]>>;
     getInjectorById(injectorId: InjectorId): Promise<Injector>;
     getKeyById(keyId: KeyId): Promise<LoginKey>;
     getKeyCreditCost(): Promise<bigint>;
@@ -90,4 +90,9 @@ export interface backendInterface {
     updateInjectorRedirect(injectorId: InjectorId, newRedirect: string | null): Promise<void>;
     updatePanelSettings(newSettings: PanelSettings): Promise<void>;
     validateKey(keyId: KeyId, deviceId: string): Promise<boolean>;
+    verifyLogin(key: string, deviceId: string): Promise<{
+        status: string;
+        valid: boolean;
+        message: string;
+    }>;
 }

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -240,5 +240,133 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Custom animations for live background effects */
+  @keyframes float {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.6;
+    }
+    33% {
+      transform: translate(30px, -30px) scale(1.1);
+      opacity: 0.8;
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+      opacity: 0.7;
+    }
+  }
+
+  @keyframes float-delayed {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.5;
+    }
+    33% {
+      transform: translate(-40px, 30px) scale(1.15);
+      opacity: 0.7;
+    }
+    66% {
+      transform: translate(25px, -25px) scale(0.95);
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes float-slow {
+    0%, 100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.2);
+      opacity: 0.8;
+    }
+  }
+
+  @keyframes float-reverse {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.4;
+    }
+    50% {
+      transform: translate(-30px, -30px) scale(1.1);
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes slide-down {
+    0% {
+      transform: translateY(-100vh);
+    }
+    100% {
+      transform: translateY(200vh);
+    }
+  }
+
+  @keyframes slide-down-delayed {
+    0% {
+      transform: translateY(-100vh);
+    }
+    100% {
+      transform: translateY(200vh);
+    }
+  }
+
+  @keyframes slide-down-slow {
+    0% {
+      transform: translateY(-100vh);
+    }
+    100% {
+      transform: translateY(200vh);
+    }
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  .animate-float {
+    animation: float 8s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: float-delayed 10s ease-in-out infinite;
+    animation-delay: 2s;
+  }
+
+  .animate-float-slow {
+    animation: float-slow 12s ease-in-out infinite;
+    animation-delay: 1s;
+  }
+
+  .animate-float-reverse {
+    animation: float-reverse 9s ease-in-out infinite;
+    animation-delay: 3s;
+  }
+
+  .animate-slide-down {
+    animation: slide-down 15s linear infinite;
+  }
+
+  .animate-slide-down-delayed {
+    animation: slide-down-delayed 18s linear infinite;
+    animation-delay: 5s;
+  }
+
+  .animate-slide-down-slow {
+    animation: slide-down-slow 22s linear infinite;
+    animation-delay: 10s;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 6s ease-in-out infinite;
   }
 }

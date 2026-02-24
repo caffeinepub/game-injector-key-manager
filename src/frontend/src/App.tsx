@@ -8,10 +8,11 @@ import { KeysTable } from "@/components/KeysTable";
 import { InjectorsSection } from "@/components/InjectorsSection";
 import { ResellersSection } from "@/components/ResellersSection";
 import { SettingsSection } from "@/components/SettingsSection";
+import { ApiDocsSection } from "@/components/ApiDocsSection";
 import { RoleSelector, type UserRole } from "@/components/RoleSelector";
 import { ResellerDashboard } from "@/components/ResellerDashboard";
 import { useAdminAuth } from "@/components/AdminLogin";
-import { Shield, LogOut, Moon, Sun, Key, Gamepad2, Settings, Users } from "lucide-react";
+import { Shield, LogOut, Moon, Sun, Key, Gamepad2, Settings, Users, FileCode } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useGetPanelSettings } from "@/hooks/useQueries";
 import type { ResellerId } from "./backend";
@@ -86,7 +87,7 @@ function Dashboard() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="keys" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4">
+          <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-5">
             <TabsTrigger value="keys" className="gap-2">
               <Key className="h-4 w-4" />
               Keys
@@ -98,6 +99,10 @@ function Dashboard() {
             <TabsTrigger value="resellers" className="gap-2">
               <Users className="h-4 w-4" />
               Resellers
+            </TabsTrigger>
+            <TabsTrigger value="api-docs" className="gap-2">
+              <FileCode className="h-4 w-4" />
+              API Docs
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
@@ -125,6 +130,10 @@ function Dashboard() {
 
           <TabsContent value="resellers" className="space-y-6">
             <ResellersSection />
+          </TabsContent>
+
+          <TabsContent value="api-docs" className="space-y-6">
+            <ApiDocsSection />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
