@@ -12,6 +12,7 @@ import { ApiDocsSection } from "@/components/ApiDocsSection";
 import { RoleSelector, type UserRole } from "@/components/RoleSelector";
 import { ResellerDashboard } from "@/components/ResellerDashboard";
 import { useAdminAuth } from "@/components/AdminLogin";
+import { PurpleParticles } from "@/components/PurpleParticles";
 import { Shield, LogOut, Moon, Sun, Key, Gamepad2, Settings, Users, FileCode } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useGetPanelSettings } from "@/hooks/useQueries";
@@ -63,98 +64,111 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Shield className="h-6 w-6 text-primary" />
-            <div>
-              <h1 className="text-xl font-bold">{panelName}</h1>
-              <p className="text-xs text-muted-foreground">
-                Admin Dashboard
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="outline" onClick={handleLogout} className="gap-2">
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="keys" className="space-y-6">
-          <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-5">
-            <TabsTrigger value="keys" className="gap-2">
-              <Key className="h-4 w-4" />
-              Keys
-            </TabsTrigger>
-            <TabsTrigger value="injectors" className="gap-2">
-              <Gamepad2 className="h-4 w-4" />
-              Injectors
-            </TabsTrigger>
-            <TabsTrigger value="resellers" className="gap-2">
-              <Users className="h-4 w-4" />
-              Resellers
-            </TabsTrigger>
-            <TabsTrigger value="api-docs" className="gap-2">
-              <FileCode className="h-4 w-4" />
-              API Docs
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="keys" className="space-y-6">
-            <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Purple-white gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-purple-900 to-purple-800" />
+      
+      {/* Animated pulsing radial gradient */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.08),transparent_50%)]">
+        <div className="absolute inset-0 animate-pulse-slow bg-[radial-gradient(circle_at_30%_70%,rgba(255,255,255,0.05),transparent_60%)]" />
+      </div>
+      
+      {/* Moving white particles */}
+      <PurpleParticles />
+      
+      <div className="relative z-10">
+        <header className="border-b border-white/10 bg-black/20 backdrop-blur-md">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Shield className="h-6 w-6 text-purple-300" />
               <div>
-                <h2 className="text-3xl font-bold mb-2">Login Key Management</h2>
-                <p className="text-muted-foreground">
-                  Create, monitor, and control authentication keys
+                <h1 className="text-xl font-bold text-white">{panelName}</h1>
+                <p className="text-xs text-purple-200">
+                  Admin Dashboard
                 </p>
               </div>
-              <CreateKeyDialog />
             </div>
-            <StatsCards />
-            <KeysTable />
-          </TabsContent>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button variant="outline" onClick={handleLogout} className="gap-2 border-white/20 text-white hover:bg-white/10">
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          </div>
+        </header>
 
-          <TabsContent value="injectors" className="space-y-6">
-            <InjectorsSection />
-          </TabsContent>
+        <main className="container mx-auto px-4 py-8">
+          <Tabs defaultValue="keys" className="space-y-6">
+            <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-5 bg-black/30 backdrop-blur-sm border border-white/10">
+              <TabsTrigger value="keys" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                <Key className="h-4 w-4" />
+                Keys
+              </TabsTrigger>
+              <TabsTrigger value="injectors" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                <Gamepad2 className="h-4 w-4" />
+                Injectors
+              </TabsTrigger>
+              <TabsTrigger value="resellers" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                <Users className="h-4 w-4" />
+                Resellers
+              </TabsTrigger>
+              <TabsTrigger value="api-docs" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                <FileCode className="h-4 w-4" />
+                API Docs
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                <Settings className="h-4 w-4" />
+                Settings
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="resellers" className="space-y-6">
-            <ResellersSection />
-          </TabsContent>
+            <TabsContent value="keys" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-bold mb-2 text-white">Login Key Management</h2>
+                  <p className="text-purple-200">
+                    Create, monitor, and control authentication keys
+                  </p>
+                </div>
+                <CreateKeyDialog />
+              </div>
+              <StatsCards />
+              <KeysTable />
+            </TabsContent>
 
-          <TabsContent value="api-docs" className="space-y-6">
-            <ApiDocsSection />
-          </TabsContent>
+            <TabsContent value="injectors" className="space-y-6">
+              <InjectorsSection />
+            </TabsContent>
 
-          <TabsContent value="settings" className="space-y-6">
-            <SettingsSection onPanelNameChange={setPanelName} />
-          </TabsContent>
-        </Tabs>
-      </main>
+            <TabsContent value="resellers" className="space-y-6">
+              <ResellersSection />
+            </TabsContent>
 
-      <footer className="border-t border-border bg-card mt-16">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          © 2026. Built with ❤️ using{" "}
-          <a
-            href="https://caffeine.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline"
-          >
-            caffeine.ai
-          </a>
-        </div>
-      </footer>
+            <TabsContent value="api-docs" className="space-y-6">
+              <ApiDocsSection />
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-6">
+              <SettingsSection onPanelNameChange={setPanelName} />
+            </TabsContent>
+          </Tabs>
+        </main>
+
+        <footer className="border-t border-white/10 bg-black/20 backdrop-blur-md mt-16">
+          <div className="container mx-auto px-4 py-6 text-center text-sm text-purple-200">
+            © 2026. Built with ❤️ using{" "}
+            <a
+              href="https://caffeine.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-purple-300 hover:underline"
+            >
+              caffeine.ai
+            </a>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }

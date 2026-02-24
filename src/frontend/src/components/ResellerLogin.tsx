@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Users, Lock, User, AlertCircle, ArrowLeft } from "lucide-react";
 import { useResellerAuthenticate } from "@/hooks/useQueries";
+import { MovingParticles } from "./MovingParticles";
 
 const RESELLER_SESSION_KEY = "resellerAuthenticated";
 
@@ -47,36 +48,32 @@ export function ResellerLogin({ onAuthenticated, onBack }: ResellerLoginProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Live animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950" />
+      {/* Black gradient background with red accents */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black via-red-950 to-black" />
       
       {/* Animated pulsing radial gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(168,85,247,0.15),transparent_50%)]">
-        <div className="absolute inset-0 animate-pulse-slow bg-[radial-gradient(circle_at_30%_70%,rgba(217,70,239,0.12),transparent_60%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(239,68,68,0.15),transparent_50%)]">
+        <div className="absolute inset-0 animate-pulse-slow bg-[radial-gradient(circle_at_30%_70%,rgba(220,38,38,0.12),transparent_60%)]" />
       </div>
       
-      {/* Floating animated particles/orbs */}
-      <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-20 right-20 w-96 h-96 bg-fuchsia-500/25 rounded-full blur-3xl animate-float-delayed" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-violet-500/30 rounded-full blur-3xl animate-float-slow" />
-      <div className="absolute top-40 right-40 w-48 h-48 bg-purple-600/20 rounded-full blur-2xl animate-float-reverse" />
-      <div className="absolute bottom-40 left-40 w-56 h-56 bg-magenta-500/20 rounded-full blur-3xl animate-float" />
+      {/* Moving white particles */}
+      <MovingParticles />
       
       {/* Moving diagonal lines effect */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent animate-slide-down" />
-        <div className="absolute top-1/3 left-0 w-full h-1 bg-gradient-to-r from-transparent via-fuchsia-400 to-transparent animate-slide-down-delayed" />
-        <div className="absolute top-2/3 left-0 w-full h-1 bg-gradient-to-r from-transparent via-violet-400 to-transparent animate-slide-down-slow" />
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-400 to-transparent animate-slide-down" />
+        <div className="absolute top-1/3 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-slide-down-delayed" />
+        <div className="absolute top-2/3 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent animate-slide-down-slow" />
       </div>
 
       <div className="max-w-md w-full mx-4 relative z-10">
-        <div className="bg-purple-950/40 backdrop-blur-xl border-2 border-purple-500/40 shadow-2xl shadow-purple-500/30 p-8 space-y-6 rounded-lg">
+        <div className="bg-black/40 backdrop-blur-xl border-2 border-red-500/40 shadow-2xl shadow-red-500/30 p-8 space-y-6 rounded-lg">
           {onBack && (
             <Button
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="gap-2 -mt-2 text-purple-200 hover:text-purple-100 hover:bg-purple-800/30"
+              className="gap-2 -mt-2 text-gray-200 hover:text-gray-100 hover:bg-red-800/30"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
@@ -86,8 +83,8 @@ export function ResellerLogin({ onAuthenticated, onBack }: ResellerLoginProps) {
           {/* Glowing users icon */}
           <div className="flex justify-center">
             <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-purple-500 blur-xl opacity-60 animate-pulse" />
-              <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-purple-500 via-fuchsia-500 to-violet-500 flex items-center justify-center shadow-lg shadow-purple-500/50">
+              <div className="absolute inset-0 rounded-full bg-red-500 blur-xl opacity-60 animate-pulse" />
+              <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-red-600 via-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/50">
                 <Users className="h-10 w-10 text-white drop-shadow-lg" />
               </div>
             </div>
@@ -96,19 +93,19 @@ export function ResellerLogin({ onAuthenticated, onBack }: ResellerLoginProps) {
           {/* Heading with custom Orbitron font */}
           <div className="space-y-2 text-center">
             <h1 
-              className="text-3xl font-bold bg-gradient-to-r from-purple-300 via-fuchsia-300 to-violet-300 bg-clip-text text-transparent"
+              className="text-3xl font-bold bg-gradient-to-r from-white via-red-200 to-white bg-clip-text text-transparent"
               style={{ fontFamily: "'Orbitron', sans-serif" }}
             >
               Reseller Login
             </h1>
-            <p className="text-purple-200/80">
+            <p className="text-gray-200/80">
               Enter your credentials to access the reseller portal
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="flex items-center gap-2 text-purple-200">
+              <Label htmlFor="username" className="flex items-center gap-2 text-gray-200">
                 <User className="h-4 w-4" />
                 Username
               </Label>
@@ -121,12 +118,12 @@ export function ResellerLogin({ onAuthenticated, onBack }: ResellerLoginProps) {
                 required
                 autoComplete="username"
                 autoFocus
-                className="w-full bg-purple-950/50 border-purple-500/40 text-purple-100 placeholder:text-purple-400/50 focus:border-purple-400 focus:ring-purple-500/50"
+                className="w-full bg-black/50 border-red-500/40 text-gray-100 placeholder:text-gray-400/50 focus:border-red-400 focus:ring-red-500/50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2 text-purple-200">
+              <Label htmlFor="password" className="flex items-center gap-2 text-gray-200">
                 <Lock className="h-4 w-4" />
                 Password
               </Label>
@@ -138,7 +135,7 @@ export function ResellerLogin({ onAuthenticated, onBack }: ResellerLoginProps) {
                 placeholder="Enter password"
                 required
                 autoComplete="current-password"
-                className="w-full bg-purple-950/50 border-purple-500/40 text-purple-100 placeholder:text-purple-400/50 focus:border-purple-400 focus:ring-purple-500/50"
+                className="w-full bg-black/50 border-red-500/40 text-gray-100 placeholder:text-gray-400/50 focus:border-red-400 focus:ring-red-500/50"
               />
             </div>
 
@@ -152,14 +149,14 @@ export function ResellerLogin({ onAuthenticated, onBack }: ResellerLoginProps) {
             <Button
               type="submit"
               disabled={isSubmitting || !username || !password}
-              className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-600 to-violet-600 hover:from-purple-500 hover:via-fuchsia-500 hover:to-violet-500 text-white border-0 shadow-lg shadow-purple-500/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:via-rose-500 hover:to-red-500 text-white border-0 shadow-lg shadow-red-500/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
               size="lg"
             >
               {isSubmitting ? "Authenticating..." : "Login"}
             </Button>
           </form>
 
-          <p className="text-sm text-purple-300/70 text-center pt-2">
+          <p className="text-sm text-gray-300/70 text-center pt-2">
             Reseller portal for Game Injector
           </p>
         </div>
