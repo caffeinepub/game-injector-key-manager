@@ -1,57 +1,18 @@
-import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import { ThemeProvider } from "./components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCards } from "@/components/StatsCards";
 import { CreateKeyDialog } from "@/components/CreateKeyDialog";
 import { KeysTable } from "@/components/KeysTable";
+import { InjectorsSection } from "@/components/InjectorsSection";
 import { AdminLogin, useAdminAuth } from "@/components/AdminLogin";
-import { Shield, LogOut, Moon, Sun, Loader2 } from "lucide-react";
-
-function LoginScreen() {
-  const { login, loginStatus } = useInternetIdentity();
-  const isLoggingIn = loginStatus === "logging-in";
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="max-w-md w-full mx-4">
-        <div className="bg-card border border-border p-8 text-center space-y-6">
-          <div className="flex justify-center">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Shield className="h-8 w-8 text-primary" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold">Game Injector Dashboard</h1>
-            <p className="text-muted-foreground">
-              Secure login key management system
-            </p>
-          </div>
-          <Button
-            onClick={login}
-            disabled={isLoggingIn}
-            className="w-full gap-2"
-            size="lg"
-          >
-            {isLoggingIn && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isLoggingIn ? "Connecting..." : "Login to Continue"}
-          </Button>
-          <p className="text-xs text-muted-foreground">
-            Powered by Internet Identity
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { Shield, LogOut, Moon, Sun, Key, Gamepad2 } from "lucide-react";
 
 function Dashboard() {
-  const { clear, identity } = useInternetIdentity();
   const { logout: adminLogout } = useAdminAuth();
-  const principal = identity?.getPrincipal().toString();
 
   const handleLogout = () => {
-    clear();
     adminLogout();
   };
 
@@ -63,8 +24,8 @@ function Dashboard() {
             <Shield className="h-6 w-6 text-primary" />
             <div>
               <h1 className="text-xl font-bold">Game Injector</h1>
-              <p className="text-xs text-muted-foreground font-mono">
-                {principal?.substring(0, 20)}...
+              <p className="text-xs text-muted-foreground">
+                Admin Dashboard
               </p>
             </div>
           </div>
@@ -79,18 +40,36 @@ function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Login Key Management</h2>
-            <p className="text-muted-foreground">
-              Create, monitor, and control authentication keys
-            </p>
-          </div>
-          <CreateKeyDialog />
-        </div>
+        <Tabs defaultValue="keys" className="space-y-6">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+            <TabsTrigger value="keys" className="gap-2">
+              <Key className="h-4 w-4" />
+              Keys
+            </TabsTrigger>
+            <TabsTrigger value="injectors" className="gap-2">
+              <Gamepad2 className="h-4 w-4" />
+              Injectors
+            </TabsTrigger>
+          </TabsList>
 
-        <StatsCards />
-        <KeysTable />
+          <TabsContent value="keys" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold mb-2">Login Key Management</h2>
+                <p className="text-muted-foreground">
+                  Create, monitor, and control authentication keys
+                </p>
+              </div>
+              <CreateKeyDialog />
+            </div>
+            <StatsCards />
+            <KeysTable />
+          </TabsContent>
+
+          <TabsContent value="injectors" className="space-y-6">
+            <InjectorsSection />
+          </TabsContent>
+        </Tabs>
       </main>
 
       <footer className="border-t border-border bg-card mt-16">
@@ -132,18 +111,9 @@ function ThemeToggle() {
 }
 
 export default function App() {
-  const { loginStatus, isInitializing } = useInternetIdentity();
   const { isAdminAuthenticated, authenticate } = useAdminAuth();
 
-  if (isInitializing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // Admin login gate - must authenticate before Internet Identity
+  // Admin login gate - authenticate to access dashboard
   if (!isAdminAuthenticated) {
     return (
       <ThemeProvider defaultTheme="dark" storageKey="theme">
@@ -155,7 +125,7 @@ export default function App() {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="theme">
-      {loginStatus === "success" ? <Dashboard /> : <LoginScreen />}
+      <Dashboard />
       <Toaster />
     </ThemeProvider>
   );

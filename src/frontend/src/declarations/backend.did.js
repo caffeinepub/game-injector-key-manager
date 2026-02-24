@@ -8,47 +8,85 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const Username = IDL.Text;
+export const Password = IDL.Text;
 export const KeyId = IDL.Nat;
+export const InjectorId = IDL.Nat;
 export const Time = IDL.Int;
+export const Injector = IDL.Record({
+  'id' : InjectorId,
+  'created' : Time,
+  'name' : IDL.Text,
+  'redirectUrl' : IDL.Opt(IDL.Text),
+});
 export const LoginKey = IDL.Record({
   'id' : KeyId,
   'key' : IDL.Text,
   'created' : Time,
+  'injector' : IDL.Opt(InjectorId),
   'expires' : IDL.Opt(Time),
   'blocked' : IDL.Bool,
   'used' : IDL.Nat,
 });
 
 export const idlService = IDL.Service({
+  'authenticate' : IDL.Func([Username, Password], [IDL.Bool], []),
   'blockKey' : IDL.Func([KeyId], [], []),
-  'createKey' : IDL.Func([IDL.Text, IDL.Nat], [], []),
+  'createInjector' : IDL.Func([IDL.Text, IDL.Opt(IDL.Text)], [], []),
+  'createKey' : IDL.Func([IDL.Text, IDL.Nat, IDL.Opt(InjectorId)], [], []),
+  'deleteInjector' : IDL.Func([InjectorId], [], []),
+  'generateLoginRedirectUrl' : IDL.Func([InjectorId], [IDL.Text], ['query']),
+  'getAllInjectors' : IDL.Func([], [IDL.Vec(Injector)], ['query']),
   'getAllKeys' : IDL.Func([], [IDL.Vec(LoginKey)], ['query']),
+  'getInjectorById' : IDL.Func([InjectorId], [Injector], ['query']),
   'getKeyById' : IDL.Func([KeyId], [LoginKey], ['query']),
   'isValidKey' : IDL.Func([KeyId], [IDL.Bool], []),
   'unblockKey' : IDL.Func([KeyId], [], []),
+  'updateInjectorRedirect' : IDL.Func([InjectorId, IDL.Opt(IDL.Text)], [], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const Username = IDL.Text;
+  const Password = IDL.Text;
   const KeyId = IDL.Nat;
+  const InjectorId = IDL.Nat;
   const Time = IDL.Int;
+  const Injector = IDL.Record({
+    'id' : InjectorId,
+    'created' : Time,
+    'name' : IDL.Text,
+    'redirectUrl' : IDL.Opt(IDL.Text),
+  });
   const LoginKey = IDL.Record({
     'id' : KeyId,
     'key' : IDL.Text,
     'created' : Time,
+    'injector' : IDL.Opt(InjectorId),
     'expires' : IDL.Opt(Time),
     'blocked' : IDL.Bool,
     'used' : IDL.Nat,
   });
   
   return IDL.Service({
+    'authenticate' : IDL.Func([Username, Password], [IDL.Bool], []),
     'blockKey' : IDL.Func([KeyId], [], []),
-    'createKey' : IDL.Func([IDL.Text, IDL.Nat], [], []),
+    'createInjector' : IDL.Func([IDL.Text, IDL.Opt(IDL.Text)], [], []),
+    'createKey' : IDL.Func([IDL.Text, IDL.Nat, IDL.Opt(InjectorId)], [], []),
+    'deleteInjector' : IDL.Func([InjectorId], [], []),
+    'generateLoginRedirectUrl' : IDL.Func([InjectorId], [IDL.Text], ['query']),
+    'getAllInjectors' : IDL.Func([], [IDL.Vec(Injector)], ['query']),
     'getAllKeys' : IDL.Func([], [IDL.Vec(LoginKey)], ['query']),
+    'getInjectorById' : IDL.Func([InjectorId], [Injector], ['query']),
     'getKeyById' : IDL.Func([KeyId], [LoginKey], ['query']),
     'isValidKey' : IDL.Func([KeyId], [IDL.Bool], []),
     'unblockKey' : IDL.Func([KeyId], [], []),
+    'updateInjectorRedirect' : IDL.Func(
+        [InjectorId, IDL.Opt(IDL.Text)],
+        [],
+        [],
+      ),
   });
 };
 

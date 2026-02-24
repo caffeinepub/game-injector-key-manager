@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { useGetAllKeys, useBlockKey, useUnblockKey } from "@/hooks/useQueries";
+import {
+  useGetAllKeys,
+  useBlockKey,
+  useUnblockKey,
+  useGetAllInjectors,
+} from "@/hooks/useQueries";
 import {
   Card,
   CardContent,
@@ -59,6 +64,7 @@ interface ConfirmDialog {
 
 export function KeysTable() {
   const { data: keys = [], isLoading } = useGetAllKeys();
+  const { data: injectors = [] } = useGetAllInjectors();
   const blockKey = useBlockKey();
   const unblockKey = useUnblockKey();
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog>({
@@ -66,6 +72,13 @@ export function KeysTable() {
     key: null,
     action: "block",
   });
+
+  // Helper function to get injector name by ID
+  const getInjectorName = (injectorId?: bigint): string => {
+    if (!injectorId) return "General";
+    const injector = injectors.find((inj) => inj.id === injectorId);
+    return injector ? injector.name : "Unknown";
+  };
 
   const handleBlockUnblock = async () => {
     if (!confirmDialog.key) return;
@@ -124,6 +137,7 @@ export function KeysTable() {
                   <TableRow>
                     <TableHead className="font-mono">ID</TableHead>
                     <TableHead className="font-mono">Key Value</TableHead>
+                    <TableHead>Injector</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Expires</TableHead>
                     <TableHead>Status</TableHead>
@@ -151,6 +165,11 @@ export function KeysTable() {
                             <Copy className="h-3 w-3" />
                           </Button>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-medium">
+                          {getInjectorName(key.injector)}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-sm">
                         {formatTimestamp(key.created)}

@@ -2,38 +2,51 @@
 
 ## Current State
 
-The application currently has a login flow using Internet Identity:
-- LoginScreen component with Internet Identity authentication
-- Dashboard component showing key management interface
-- App.tsx manages authentication state and shows LoginScreen or Dashboard based on `loginStatus`
+The application currently has:
+- Admin authentication with username/password gate
+- Key management system with create, block/unblock, and view functionality
+- Keys have: id, key value, created timestamp, optional expiration, blocked status, and usage count
+- Injector management system with create, delete, and redirect URL generation
+- Injectors have: id, name, created timestamp, and optional redirect URL
+- Keys and injectors are managed independently with no association between them
 
 ## Requested Changes (Diff)
 
 ### Add
-- Admin login page with username/password authentication
-- Authentication state management for admin session
-- Username: "Gaurav", Password: "Gaurav_20"
-- Admin login appears before the Internet Identity login
+- Association between keys and injectors (each key belongs to a specific injector)
+- Injector selection dropdown in the Create Key dialog
+- Injector name/identifier column in the Keys table
+- Filter or grouping by injector in the keys view (optional enhancement)
 
 ### Modify
-- App.tsx flow to show: AdminLogin → LoginScreen (Internet Identity) → Dashboard
-- Authentication flow now has two stages: admin authentication, then Internet Identity
+- Backend `createKey` API to accept an optional injector ID parameter
+- Backend `LoginKey` interface to include optional injector ID field
+- Frontend Create Key dialog to include injector selection
+- Frontend Keys table to display which injector each key belongs to
 
 ### Remove
 - None
 
 ## Implementation Plan
 
-1. Create AdminLogin component with username/password form
-2. Add admin authentication state (localStorage-based session)
-3. Update App.tsx to check admin authentication first
-4. Only show Internet Identity login after admin authentication succeeds
-5. Add logout from admin session capability
+1. **Backend Changes**:
+   - Update `LoginKey` data structure to include optional `injectorId` field
+   - Modify `createKey` function to accept optional `injectorId: InjectorId | null` parameter
+   - Update key storage to include injector association
+
+2. **Frontend Changes**:
+   - Update `CreateKeyDialog` component to:
+     - Fetch list of available injectors
+     - Add injector selection dropdown (with "No Injector" option)
+     - Pass selected injector ID to `createKey` mutation
+   - Update `KeysTable` component to:
+     - Display injector name for each key (or "General" if no injector)
+     - Add column for injector information
+   - Update React Query hooks to handle new injector parameter
 
 ## UX Notes
 
-- Admin credentials are hardcoded: username "Gaurav", password "Gaurav_20"
-- Admin login uses a clean form with username and password inputs
-- Error messages shown for invalid credentials
-- Admin session persists across page refreshes via localStorage
-- Users must pass admin authentication before reaching Internet Identity login
+- Injector selection should be optional (keys can be created without an injector, for general use)
+- Display "General" or similar label for keys without an injector assignment
+- Injector dropdown should show injector names for easy selection
+- Consider showing injector count in stats or allowing filtering by injector in future iterations

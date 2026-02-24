@@ -10,23 +10,43 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface Injector {
+  'id' : InjectorId,
+  'created' : Time,
+  'name' : string,
+  'redirectUrl' : [] | [string],
+}
+export type InjectorId = bigint;
 export type KeyId = bigint;
 export interface LoginKey {
   'id' : KeyId,
   'key' : string,
   'created' : Time,
+  'injector' : [] | [InjectorId],
   'expires' : [] | [Time],
   'blocked' : boolean,
   'used' : bigint,
 }
+export type Password = string;
 export type Time = bigint;
+export type Username = string;
 export interface _SERVICE {
+  'authenticate' : ActorMethod<[Username, Password], boolean>,
   'blockKey' : ActorMethod<[KeyId], undefined>,
-  'createKey' : ActorMethod<[string, bigint], undefined>,
+  'createInjector' : ActorMethod<[string, [] | [string]], undefined>,
+  'createKey' : ActorMethod<[string, bigint, [] | [InjectorId]], undefined>,
+  'deleteInjector' : ActorMethod<[InjectorId], undefined>,
+  'generateLoginRedirectUrl' : ActorMethod<[InjectorId], string>,
+  'getAllInjectors' : ActorMethod<[], Array<Injector>>,
   'getAllKeys' : ActorMethod<[], Array<LoginKey>>,
+  'getInjectorById' : ActorMethod<[InjectorId], Injector>,
   'getKeyById' : ActorMethod<[KeyId], LoginKey>,
   'isValidKey' : ActorMethod<[KeyId], boolean>,
   'unblockKey' : ActorMethod<[KeyId], undefined>,
+  'updateInjectorRedirect' : ActorMethod<
+    [InjectorId, [] | [string]],
+    undefined
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

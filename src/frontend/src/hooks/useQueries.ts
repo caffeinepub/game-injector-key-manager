@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useActor } from "./useActor";
-import type { LoginKey, KeyId } from "../backend";
+import type { LoginKey, KeyId, Injector, InjectorId } from "../backend";
 
 export function useGetAllKeys() {
   const { actor, isFetching } = useActor();
@@ -22,12 +22,14 @@ export function useCreateKey() {
     mutationFn: async ({
       keyValue,
       expiresInSeconds,
+      injectorId,
     }: {
       keyValue: string;
       expiresInSeconds: bigint;
+      injectorId: InjectorId | null;
     }) => {
       if (!actor) throw new Error("Actor not initialized");
-      await actor.createKey(keyValue, expiresInSeconds);
+      await actor.createKey(keyValue, expiresInSeconds, injectorId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["keys"] });
@@ -61,6 +63,66 @@ export function useUnblockKey() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["keys"] });
+    },
+  });
+}
+
+// Injector queries and mutations
+export function useGetAllInjectors() {
+  const { actor, isFetching } = useActor();
+  return useQuery<Injector[]>({
+    queryKey: ["injectors"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllInjectors();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useCreateInjector() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      name,
+      redirectUrl,
+    }: {
+      name: string;
+      redirectUrl: string | null;
+    }) => {
+      if (!actor) throw new Error("Actor not initialized");
+      await actor.createInjector(name, redirectUrl);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["injectors"] });
+    },
+  });
+}
+
+export function useDeleteInjector() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (injectorId: InjectorId) => {
+      if (!actor) throw new Error("Actor not initialized");
+      await actor.deleteInjector(injectorId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["injectors"] });
+    },
+  });
+}
+
+export function useGenerateLoginRedirectUrl() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (injectorId: InjectorId) => {
+      if (!actor) throw new Error("Actor not initialized");
+      return actor.generateLoginRedirectUrl(injectorId);
     },
   });
 }

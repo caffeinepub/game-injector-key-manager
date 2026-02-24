@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useCreateKey } from "@/hooks/useQueries";
+import { useCreateKey, useGetAllInjectors } from "@/hooks/useQueries";
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Loader2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
+import type { InjectorId } from "../backend";
 
 const DURATION_PRESETS = [
   { label: "1 Hour", seconds: BigInt(3600) },
@@ -40,13 +48,19 @@ export function CreateKeyDialog() {
   const [selectedDuration, setSelectedDuration] = useState<bigint>(
     BigInt(86400)
   );
+  const [selectedInjector, setSelectedInjector] = useState<InjectorId | null>(
+    null
+  );
   const createKey = useCreateKey();
+  const { data: injectors = [], isLoading: injectorsLoading } =
+    useGetAllInjectors();
 
   const handleOpen = (isOpen: boolean) => {
     setOpen(isOpen);
     if (isOpen) {
       setKeyValue(generateRandomKey());
       setSelectedDuration(BigInt(86400));
+      setSelectedInjector(null);
     }
   };
 
@@ -62,6 +76,7 @@ export function CreateKeyDialog() {
       await createKey.mutateAsync({
         keyValue: keyValue.trim(),
         expiresInSeconds: selectedDuration,
+        injectorId: selectedInjector,
       });
       toast.success("Key created successfully");
       setOpen(false);
@@ -110,6 +125,42 @@ export function CreateKeyDialog() {
                 placeholder="Enter key value"
                 className="font-mono"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="injector">Injector (Optional)</Label>
+              <Select
+                value={selectedInjector?.toString() || "general"}
+                onValueChange={(value) =>
+                  setSelectedInjector(
+                    value === "general" ? null : BigInt(value)
+                  )
+                }
+              >
+                <SelectTrigger id="injector">
+                  <SelectValue placeholder="Select an injector" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General / No Injector</SelectItem>
+                  {injectorsLoading ? (
+                    <SelectItem value="loading" disabled>
+                      Loading injectors...
+                    </SelectItem>
+                  ) : (
+                    injectors.map((injector) => (
+                      <SelectItem
+                        key={injector.id.toString()}
+                        value={injector.id.toString()}
+                      >
+                        {injector.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Keys without an injector can be used for any injector
+              </p>
             </div>
 
             <div className="space-y-2">
