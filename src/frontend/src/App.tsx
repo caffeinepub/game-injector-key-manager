@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { StatsCards } from "@/components/StatsCards";
 import { CreateKeyDialog } from "@/components/CreateKeyDialog";
 import { KeysTable } from "@/components/KeysTable";
+import { AdminLogin, useAdminAuth } from "@/components/AdminLogin";
 import { Shield, LogOut, Moon, Sun, Loader2 } from "lucide-react";
 
 function LoginScreen() {
@@ -46,7 +47,13 @@ function LoginScreen() {
 
 function Dashboard() {
   const { clear, identity } = useInternetIdentity();
+  const { logout: adminLogout } = useAdminAuth();
   const principal = identity?.getPrincipal().toString();
+
+  const handleLogout = () => {
+    clear();
+    adminLogout();
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -63,7 +70,7 @@ function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="outline" onClick={clear} className="gap-2">
+            <Button variant="outline" onClick={handleLogout} className="gap-2">
               <LogOut className="h-4 w-4" />
               Logout
             </Button>
@@ -126,12 +133,23 @@ function ThemeToggle() {
 
 export default function App() {
   const { loginStatus, isInitializing } = useInternetIdentity();
+  const { isAdminAuthenticated, authenticate } = useAdminAuth();
 
   if (isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  // Admin login gate - must authenticate before Internet Identity
+  if (!isAdminAuthenticated) {
+    return (
+      <ThemeProvider defaultTheme="dark" storageKey="theme">
+        <AdminLogin onAuthenticated={authenticate} />
+        <Toaster />
+      </ThemeProvider>
     );
   }
 
