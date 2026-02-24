@@ -6,15 +6,60 @@ import { StatsCards } from "@/components/StatsCards";
 import { CreateKeyDialog } from "@/components/CreateKeyDialog";
 import { KeysTable } from "@/components/KeysTable";
 import { InjectorsSection } from "@/components/InjectorsSection";
-import { AdminLogin, useAdminAuth } from "@/components/AdminLogin";
-import { Shield, LogOut, Moon, Sun, Key, Gamepad2 } from "lucide-react";
+import { ResellersSection } from "@/components/ResellersSection";
+import { SettingsSection } from "@/components/SettingsSection";
+import { RoleSelector, type UserRole } from "@/components/RoleSelector";
+import { ResellerDashboard } from "@/components/ResellerDashboard";
+import { useAdminAuth } from "@/components/AdminLogin";
+import { Shield, LogOut, Moon, Sun, Key, Gamepad2, Settings, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useGetPanelSettings } from "@/hooks/useQueries";
+import type { ResellerId } from "./backend";
 
 function Dashboard() {
-  const { logout: adminLogout } = useAdminAuth();
+  const { logout: adminLogout, reAuthenticate } = useAdminAuth();
+  const [isReauthenticating, setIsReauthenticating] = useState(true);
+  const { data: panelSettings } = useGetPanelSettings();
+  const [panelName, setPanelName] = useState("Game Injector");
+
+  useEffect(() => {
+    // Re-authenticate with backend on mount
+    const authenticate = async () => {
+      await reAuthenticate();
+      setIsReauthenticating(false);
+    };
+    authenticate();
+  }, [reAuthenticate]);
+
+  // Update panel name when settings load or change
+  useEffect(() => {
+    if (panelSettings) {
+      setPanelName(panelSettings.panelName);
+      // Apply theme from settings
+      const root = document.documentElement;
+      root.setAttribute("data-theme", panelSettings.themePreset);
+      if (panelSettings.themePreset === "light") {
+        root.classList.remove("dark");
+      } else {
+        root.classList.add("dark");
+      }
+    }
+  }, [panelSettings]);
 
   const handleLogout = () => {
     adminLogout();
   };
+
+  if (isReauthenticating) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Shield className="h-12 w-12 text-primary mx-auto animate-pulse" />
+          <p className="text-muted-foreground">Authenticating...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -23,7 +68,7 @@ function Dashboard() {
           <div className="flex items-center gap-3">
             <Shield className="h-6 w-6 text-primary" />
             <div>
-              <h1 className="text-xl font-bold">Game Injector</h1>
+              <h1 className="text-xl font-bold">{panelName}</h1>
               <p className="text-xs text-muted-foreground">
                 Admin Dashboard
               </p>
@@ -41,7 +86,7 @@ function Dashboard() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="keys" className="space-y-6">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4">
             <TabsTrigger value="keys" className="gap-2">
               <Key className="h-4 w-4" />
               Keys
@@ -49,6 +94,14 @@ function Dashboard() {
             <TabsTrigger value="injectors" className="gap-2">
               <Gamepad2 className="h-4 w-4" />
               Injectors
+            </TabsTrigger>
+            <TabsTrigger value="resellers" className="gap-2">
+              <Users className="h-4 w-4" />
+              Resellers
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
             </TabsTrigger>
           </TabsList>
 
@@ -68,6 +121,14 @@ function Dashboard() {
 
           <TabsContent value="injectors" className="space-y-6">
             <InjectorsSection />
+          </TabsContent>
+
+          <TabsContent value="resellers" className="space-y-6">
+            <ResellersSection />
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <SettingsSection onPanelNameChange={setPanelName} />
           </TabsContent>
         </Tabs>
       </main>
@@ -91,13 +152,18 @@ function Dashboard() {
 
 function ThemeToggle() {
   const toggleTheme = () => {
-    const isDark = document.documentElement.classList.contains("dark");
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    } else {
-      document.documentElement.classList.add("dark");
+    const root = document.documentElement;
+    const currentTheme = root.getAttribute("data-theme") || "default";
+    
+    // Simple toggle between light and dark
+    if (currentTheme === "light") {
+      root.setAttribute("data-theme", "default");
+      root.classList.add("dark");
       localStorage.setItem("theme", "dark");
+    } else {
+      root.setAttribute("data-theme", "light");
+      root.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
   };
 
@@ -111,18 +177,56 @@ function ThemeToggle() {
 }
 
 export default function App() {
-  const { isAdminAuthenticated, authenticate } = useAdminAuth();
+  const { isAdminAuthenticated, authenticate, logout } = useAdminAuth();
+  const [userRole, setUserRole] = useState<UserRole | null>(() => {
+    const storedRole = localStorage.getItem("userRole");
+    return storedRole === "admin" || storedRole === "reseller" ? storedRole : null;
+  });
+  const [resellerId, setResellerId] = useState<ResellerId | null>(() => {
+    const storedId = localStorage.getItem("resellerId");
+    return storedId ? BigInt(storedId) : null;
+  });
 
-  // Admin login gate - authenticate to access dashboard
-  if (!isAdminAuthenticated) {
+  const handleAuthenticated = (role: UserRole, resellerIdArg?: bigint) => {
+    setUserRole(role);
+    if (role === "admin") {
+      authenticate();
+    } else if (role === "reseller" && resellerIdArg) {
+      setResellerId(resellerIdArg);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setUserRole(null);
+    setResellerId(null);
+  };
+
+  // Check if user is authenticated
+  const isAuthenticated = userRole === "admin" 
+    ? isAdminAuthenticated 
+    : userRole === "reseller" && resellerId !== null;
+
+  if (!isAuthenticated) {
     return (
       <ThemeProvider defaultTheme="dark" storageKey="theme">
-        <AdminLogin onAuthenticated={authenticate} />
+        <RoleSelector onAuthenticated={handleAuthenticated} />
         <Toaster />
       </ThemeProvider>
     );
   }
 
+  // Render reseller dashboard if reseller
+  if (userRole === "reseller" && resellerId) {
+    return (
+      <ThemeProvider defaultTheme="dark" storageKey="theme">
+        <ResellerDashboard resellerId={resellerId} onLogout={handleLogout} />
+        <Toaster />
+      </ThemeProvider>
+    );
+  }
+
+  // Render admin dashboard
   return (
     <ThemeProvider defaultTheme="dark" storageKey="theme">
       <Dashboard />

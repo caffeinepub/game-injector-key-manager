@@ -2,51 +2,72 @@
 
 ## Current State
 
-The application currently has:
-- Admin authentication with username/password gate
-- Key management system with create, block/unblock, and view functionality
-- Keys have: id, key value, created timestamp, optional expiration, blocked status, and usage count
-- Injector management system with create, delete, and redirect URL generation
-- Injectors have: id, name, created timestamp, and optional redirect URL
-- Keys and injectors are managed independently with no association between them
+The application currently supports:
+- **Admin authentication**: Username/password login (Gaurav/Gaurav_20)
+- **Key management**: Create keys with customizable duration, device limits, and injector assignment
+- **Injector management**: Add injectors via APK upload or manual entry, with auto-redirect configuration
+- **Key controls**: Block/unblock keys, track device usage
+- **Customization**: Panel name and theme presets (5 themes)
 
 ## Requested Changes (Diff)
 
 ### Add
-- Association between keys and injectors (each key belongs to a specific injector)
-- Injector selection dropdown in the Create Key dialog
-- Injector name/identifier column in the Keys table
-- Filter or grouping by injector in the keys view (optional enhancement)
+- **Reseller user type**: New account type separate from admin
+- **Reseller authentication**: Separate login flow with username/password
+- **Reseller management interface (Admin)**: 
+  - Create reseller accounts with username/password
+  - Assign/modify credit balance for resellers
+  - View all resellers and their credit balances
+  - Delete reseller accounts
+- **Credit system**: 
+  - Each key creation costs credits (configurable by admin)
+  - Resellers can only create keys if they have sufficient credits
+  - Admin has unlimited keys (no credit cost)
+- **Reseller dashboard**: 
+  - View own credit balance
+  - Create keys for any injector (consuming credits)
+  - View keys created by the reseller
+  - Cannot access injector management or settings
 
 ### Modify
-- Backend `createKey` API to accept an optional injector ID parameter
-- Backend `LoginKey` interface to include optional injector ID field
-- Frontend Create Key dialog to include injector selection
-- Frontend Keys table to display which injector each key belongs to
+- **Login flow**: Add option to choose between Admin and Reseller login
+- **Key creation**: Deduct credits from reseller on key creation
+- **Backend API**: Extend to support reseller accounts, credit management, and role-based permissions
 
 ### Remove
 - None
 
 ## Implementation Plan
 
-1. **Backend Changes**:
-   - Update `LoginKey` data structure to include optional `injectorId` field
-   - Modify `createKey` function to accept optional `injectorId: InjectorId | null` parameter
-   - Update key storage to include injector association
+### Backend (Motoko)
+1. Add Reseller data type with username, password, credits, created timestamp
+2. Add reseller CRUD operations (create, authenticate, get all, update credits, delete)
+3. Add credit cost configuration for key creation (default: 1 credit per key)
+4. Modify createKey to accept optional reseller ID and deduct credits
+5. Add role-based authorization checks for injector/settings operations
+6. Add getResellerKeys(resellerId) to fetch keys created by specific reseller
 
-2. **Frontend Changes**:
-   - Update `CreateKeyDialog` component to:
-     - Fetch list of available injectors
-     - Add injector selection dropdown (with "No Injector" option)
-     - Pass selected injector ID to `createKey` mutation
-   - Update `KeysTable` component to:
-     - Display injector name for each key (or "General" if no injector)
-     - Add column for injector information
-   - Update React Query hooks to handle new injector parameter
+### Frontend
+1. **LoginSelector component**: Choose between Admin/Reseller login
+2. **ResellerLogin component**: Login form for resellers
+3. **Admin - Resellers tab**: 
+   - Table showing all resellers (username, credits, created date)
+   - "Add Reseller" dialog with username/password/initial credits
+   - "Add Credits" action for each reseller
+   - "Delete Reseller" action
+4. **Reseller Dashboard**:
+   - Header showing credit balance
+   - CreateKeyDialog with credit cost display
+   - KeysTable filtered to reseller's keys only
+   - No access to Injectors or Settings tabs
+5. Update AdminLogin to use new login selector
+6. Add role context/state to manage Admin vs Reseller views
 
 ## UX Notes
-
-- Injector selection should be optional (keys can be created without an injector, for general use)
-- Display "General" or similar label for keys without an injector assignment
-- Injector dropdown should show injector names for easy selection
-- Consider showing injector count in stats or allowing filtering by injector in future iterations
+- Login screen shows two clear options: "Admin Login" and "Reseller Login"
+- Resellers see prominent credit balance in dashboard header
+- Key creation dialog shows "Cost: X credits" for resellers
+- Insufficient credits show error toast before key creation
+- Admin can set credit cost per key in Settings (default: 1)
+- Resellers only see keys they created, not all keys
+- Clean separation between admin and reseller capabilities

@@ -32,7 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Copy, Lock, Unlock, Loader2 } from "lucide-react";
+import { Copy, Lock, Unlock, Loader2, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import type { LoginKey } from "../backend";
 
@@ -78,6 +78,27 @@ export function KeysTable() {
     if (!injectorId) return "General";
     const injector = injectors.find((inj) => inj.id === injectorId);
     return injector ? injector.name : "Unknown";
+  };
+
+  // Helper function to format device usage
+  const getDeviceUsageDisplay = (key: LoginKey) => {
+    const current = Number(key.deviceCount);
+    const max = key.maxDevices ? Number(key.maxDevices) : null;
+    
+    if (max === null) {
+      return { text: "Unlimited", variant: "secondary" as const };
+    }
+    
+    const percentage = (current / max) * 100;
+    let variant: "default" | "secondary" | "destructive" = "default";
+    
+    if (current >= max) {
+      variant = "destructive";
+    } else if (percentage >= 80) {
+      variant = "secondary";
+    }
+    
+    return { text: `${current} / ${max}`, variant };
   };
 
   const handleBlockUnblock = async () => {
@@ -140,6 +161,7 @@ export function KeysTable() {
                     <TableHead>Injector</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Expires</TableHead>
+                    <TableHead>Devices</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Used</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -176,6 +198,24 @@ export function KeysTable() {
                       </TableCell>
                       <TableCell className="text-sm">
                         {formatTimestamp(key.expires)}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const deviceUsage = getDeviceUsageDisplay(key);
+                          const isAtLimit = key.maxDevices && 
+                            key.deviceCount >= key.maxDevices;
+                          
+                          return (
+                            <Badge
+                              variant={deviceUsage.variant}
+                              className="gap-1 font-mono"
+                            >
+                              <Smartphone className="h-3 w-3" />
+                              {deviceUsage.text}
+                              {isAtLimit && " (Limit Reached)"}
+                            </Badge>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         {key.blocked ? (

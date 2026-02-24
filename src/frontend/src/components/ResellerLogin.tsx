@@ -2,24 +2,22 @@ import { useState, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Lock, User, AlertCircle, ArrowLeft } from "lucide-react";
-import { useBackendAuthenticate } from "@/hooks/useQueries";
+import { Users, Lock, User, AlertCircle, ArrowLeft } from "lucide-react";
+import { useResellerAuthenticate } from "@/hooks/useQueries";
 
-const ADMIN_USERNAME = "Gaurav";
-const ADMIN_PASSWORD = "Gaurav_20";
-const ADMIN_SESSION_KEY = "adminAuthenticated";
+const RESELLER_SESSION_KEY = "resellerAuthenticated";
 
-interface AdminLoginProps {
-  onAuthenticated: () => void;
+interface ResellerLoginProps {
+  onAuthenticated: (resellerId: bigint) => void;
   onBack?: () => void;
 }
 
-export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
+export function ResellerLogin({ onAuthenticated, onBack }: ResellerLoginProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const backendAuth = useBackendAuthenticate();
+  const resellerAuth = useResellerAuthenticate();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -27,27 +25,20 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
     setIsSubmitting(true);
 
     try {
-      // First validate credentials locally
-      if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
-        setError("Invalid username or password");
-        setPassword("");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Then authenticate with backend
-      await backendAuth.mutateAsync({ username, password });
+      // Authenticate with backend - returns reseller ID on success
+      const resellerId = await resellerAuth.mutateAsync({ username, password });
       
       // Store credentials for re-authentication if needed
-      localStorage.setItem(ADMIN_SESSION_KEY, "true");
-      localStorage.setItem("adminUsername", username);
-      localStorage.setItem("adminPassword", password);
-      localStorage.setItem("userRole", "admin");
+      localStorage.setItem(RESELLER_SESSION_KEY, "true");
+      localStorage.setItem("resellerUsername", username);
+      localStorage.setItem("resellerPassword", password);
+      localStorage.setItem("resellerId", resellerId.toString());
+      localStorage.setItem("userRole", "reseller");
       
-      onAuthenticated();
-    } catch (err) {
-      console.error("Backend authentication failed:", err);
-      setError("Failed to authenticate with backend. Please try again.");
+      onAuthenticated(resellerId);
+    } catch (err: any) {
+      console.error("Reseller authentication failed:", err);
+      setError(err.message || "Invalid username or password");
       setPassword("");
     } finally {
       setIsSubmitting(false);
@@ -71,13 +62,13 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
           )}
           <div className="flex justify-center">
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Shield className="h-8 w-8 text-primary" />
+              <Users className="h-8 w-8 text-primary" />
             </div>
           </div>
           <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-bold">Admin Authentication</h1>
+            <h1 className="text-2xl font-bold">Reseller Login</h1>
             <p className="text-muted-foreground">
-              Enter your credentials to access the system
+              Enter your credentials to access the reseller portal
             </p>
           </div>
 
@@ -135,7 +126,7 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
           </form>
 
           <p className="text-xs text-muted-foreground text-center">
-            Secure admin portal for Game Injector
+            Reseller portal for Game Injector
           </p>
         </div>
       </div>
@@ -143,49 +134,27 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
   );
 }
 
-export function useAdminAuth() {
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
-    return localStorage.getItem(ADMIN_SESSION_KEY) === "true";
+export function useResellerAuth() {
+  const [isResellerAuthenticated, setIsResellerAuthenticated] = useState(() => {
+    return localStorage.getItem(RESELLER_SESSION_KEY) === "true";
   });
-  const backendAuth = useBackendAuthenticate();
 
   const authenticate = () => {
-    setIsAdminAuthenticated(true);
+    setIsResellerAuthenticated(true);
   };
 
   const logout = () => {
-    localStorage.removeItem(ADMIN_SESSION_KEY);
-    localStorage.removeItem("adminUsername");
-    localStorage.removeItem("adminPassword");
-    localStorage.removeItem("userRole");
+    localStorage.removeItem(RESELLER_SESSION_KEY);
+    localStorage.removeItem("resellerUsername");
+    localStorage.removeItem("resellerPassword");
     localStorage.removeItem("resellerId");
-    setIsAdminAuthenticated(false);
-  };
-
-  const reAuthenticate = async () => {
-    const storedUsername = localStorage.getItem("adminUsername");
-    const storedPassword = localStorage.getItem("adminPassword");
-    
-    if (storedUsername && storedPassword) {
-      try {
-        await backendAuth.mutateAsync({
-          username: storedUsername,
-          password: storedPassword,
-        });
-        return true;
-      } catch (err) {
-        console.error("Re-authentication failed:", err);
-        logout();
-        return false;
-      }
-    }
-    return false;
+    localStorage.removeItem("userRole");
+    setIsResellerAuthenticated(false);
   };
 
   return {
-    isAdminAuthenticated,
+    isResellerAuthenticated,
     authenticate,
     logout,
-    reAuthenticate,
   };
 }

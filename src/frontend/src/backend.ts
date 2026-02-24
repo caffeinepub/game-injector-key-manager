@@ -89,44 +89,121 @@ export class ExternalBlob {
         return this;
     }
 }
+export interface KeyRequest {
+    key: string;
+    injector?: InjectorId;
+    expires?: Time;
+    maxDevices?: bigint;
+    resellerId?: ResellerId;
+}
 export interface LoginKey {
     id: KeyId;
     key: string;
     created: Time;
     injector?: InjectorId;
     expires?: Time;
+    deviceCount: bigint;
+    maxDevices?: bigint;
     blocked: boolean;
     used: bigint;
+    resellerId?: ResellerId;
+    devicesUsed: bigint;
 }
 export type Time = bigint;
 export type KeyId = bigint;
 export type InjectorId = bigint;
+export interface PanelSettings {
+    themePreset: string;
+    panelName: string;
+}
+export type ResellerId = bigint;
+export type Password = string;
 export interface Injector {
     id: InjectorId;
+    status: boolean;
     created: Time;
     name: string;
     redirectUrl?: string;
 }
-export type Password = string;
+export interface AdminAccount {
+    created: Time;
+    username: Username;
+    password: Password;
+    lastLogin?: Time;
+}
 export type Username = string;
+export interface Reseller {
+    id: ResellerId;
+    created: Time;
+    credits: bigint;
+    username: Username;
+    password: Password;
+    lastLogin?: Time;
+}
 export interface backendInterface {
+    addCredits(resellerId: ResellerId, amount: bigint): Promise<void>;
+    adminCreateKey(request: KeyRequest): Promise<void>;
     authenticate(username: Username, password: Password): Promise<boolean>;
+    authenticateReseller(username: Username, password: Password): Promise<ResellerId>;
     blockKey(keyId: KeyId): Promise<void>;
     createInjector(name: string, redirectUrl: string | null): Promise<void>;
-    createKey(keyValue: string, expiresInSeconds: bigint, injectorId: InjectorId | null): Promise<void>;
+    createReseller(username: Username, password: Password): Promise<void>;
     deleteInjector(injectorId: InjectorId): Promise<void>;
+    deleteReseller(resellerId: ResellerId): Promise<void>;
     generateLoginRedirectUrl(injectorId: InjectorId): Promise<string>;
+    getAccountByUsername(username: Username): Promise<AdminAccount | null>;
+    getAllAccounts(): Promise<Array<AdminAccount>>;
     getAllInjectors(): Promise<Array<Injector>>;
     getAllKeys(): Promise<Array<LoginKey>>;
+    getAllResellers(): Promise<Array<Reseller>>;
+    getDevicesForKey(arg0: KeyId): Promise<Array<string>>;
     getInjectorById(injectorId: InjectorId): Promise<Injector>;
     getKeyById(keyId: KeyId): Promise<LoginKey>;
+    getKeyCreditCost(): Promise<bigint>;
+    getKeysByReseller(resellerId: ResellerId): Promise<Array<LoginKey>>;
+    getPanelSettings(): Promise<PanelSettings>;
     isValidKey(keyId: KeyId): Promise<boolean>;
+    resellerCreateKey(request: KeyRequest, resellerId: ResellerId): Promise<void>;
+    setKeyCreditCost(cost: bigint): Promise<void>;
+    subtractCredits(resellerId: ResellerId, amount: bigint): Promise<void>;
     unblockKey(keyId: KeyId): Promise<void>;
+    updateAccount(account: AdminAccount): Promise<void>;
+    updateAccountUsername(newUsername: string): Promise<void>;
     updateInjectorRedirect(injectorId: InjectorId, newRedirect: string | null): Promise<void>;
+    updatePanelSettings(newSettings: PanelSettings): Promise<void>;
+    validateKey(keyId: KeyId, deviceId: string): Promise<boolean>;
 }
-import type { Injector as _Injector, InjectorId as _InjectorId, KeyId as _KeyId, LoginKey as _LoginKey, Time as _Time } from "./declarations/backend.did.d.ts";
+import type { AdminAccount as _AdminAccount, Injector as _Injector, InjectorId as _InjectorId, KeyId as _KeyId, KeyRequest as _KeyRequest, LoginKey as _LoginKey, Password as _Password, Reseller as _Reseller, ResellerId as _ResellerId, Time as _Time, Username as _Username } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
+    async addCredits(arg0: ResellerId, arg1: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addCredits(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addCredits(arg0, arg1);
+            return result;
+        }
+    }
+    async adminCreateKey(arg0: KeyRequest): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.adminCreateKey(to_candid_KeyRequest_n1(this._uploadFile, this._downloadFile, arg0));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.adminCreateKey(to_candid_KeyRequest_n1(this._uploadFile, this._downloadFile, arg0));
+            return result;
+        }
+    }
     async authenticate(arg0: Username, arg1: Password): Promise<boolean> {
         if (this.processError) {
             try {
@@ -138,6 +215,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.authenticate(arg0, arg1);
+            return result;
+        }
+    }
+    async authenticateReseller(arg0: Username, arg1: Password): Promise<ResellerId> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.authenticateReseller(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.authenticateReseller(arg0, arg1);
             return result;
         }
     }
@@ -158,28 +249,28 @@ export class Backend implements backendInterface {
     async createInjector(arg0: string, arg1: string | null): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.createInjector(arg0, to_candid_opt_n1(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.createInjector(arg0, to_candid_opt_n3(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createInjector(arg0, to_candid_opt_n1(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.createInjector(arg0, to_candid_opt_n3(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
-    async createKey(arg0: string, arg1: bigint, arg2: InjectorId | null): Promise<void> {
+    async createReseller(arg0: Username, arg1: Password): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.createKey(arg0, arg1, to_candid_opt_n2(this._uploadFile, this._downloadFile, arg2));
+                const result = await this.actor.createReseller(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createKey(arg0, arg1, to_candid_opt_n2(this._uploadFile, this._downloadFile, arg2));
+            const result = await this.actor.createReseller(arg0, arg1);
             return result;
         }
     }
@@ -197,6 +288,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteReseller(arg0: ResellerId): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteReseller(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteReseller(arg0);
+            return result;
+        }
+    }
     async generateLoginRedirectUrl(arg0: InjectorId): Promise<string> {
         if (this.processError) {
             try {
@@ -211,60 +316,158 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getAccountByUsername(arg0: Username): Promise<AdminAccount | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAccountByUsername(arg0);
+                return from_candid_opt_n4(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAccountByUsername(arg0);
+            return from_candid_opt_n4(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAllAccounts(): Promise<Array<AdminAccount>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllAccounts();
+                return from_candid_vec_n8(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllAccounts();
+            return from_candid_vec_n8(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getAllInjectors(): Promise<Array<Injector>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllInjectors();
-                return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n9(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllInjectors();
-            return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n9(this._uploadFile, this._downloadFile, result);
         }
     }
     async getAllKeys(): Promise<Array<LoginKey>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllKeys();
-                return from_candid_vec_n7(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n13(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllKeys();
-            return from_candid_vec_n7(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n13(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAllResellers(): Promise<Array<Reseller>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllResellers();
+                return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllResellers();
+            return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getDevicesForKey(arg0: KeyId): Promise<Array<string>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getDevicesForKey(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getDevicesForKey(arg0);
+            return result;
         }
     }
     async getInjectorById(arg0: InjectorId): Promise<Injector> {
         if (this.processError) {
             try {
                 const result = await this.actor.getInjectorById(arg0);
-                return from_candid_Injector_n4(this._uploadFile, this._downloadFile, result);
+                return from_candid_Injector_n10(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getInjectorById(arg0);
-            return from_candid_Injector_n4(this._uploadFile, this._downloadFile, result);
+            return from_candid_Injector_n10(this._uploadFile, this._downloadFile, result);
         }
     }
     async getKeyById(arg0: KeyId): Promise<LoginKey> {
         if (this.processError) {
             try {
                 const result = await this.actor.getKeyById(arg0);
-                return from_candid_LoginKey_n8(this._uploadFile, this._downloadFile, result);
+                return from_candid_LoginKey_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getKeyById(arg0);
-            return from_candid_LoginKey_n8(this._uploadFile, this._downloadFile, result);
+            return from_candid_LoginKey_n14(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getKeyCreditCost(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getKeyCreditCost();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getKeyCreditCost();
+            return result;
+        }
+    }
+    async getKeysByReseller(arg0: ResellerId): Promise<Array<LoginKey>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getKeysByReseller(arg0);
+                return from_candid_vec_n13(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getKeysByReseller(arg0);
+            return from_candid_vec_n13(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getPanelSettings(): Promise<PanelSettings> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getPanelSettings();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getPanelSettings();
+            return result;
         }
     }
     async isValidKey(arg0: KeyId): Promise<boolean> {
@@ -278,6 +481,48 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.isValidKey(arg0);
+            return result;
+        }
+    }
+    async resellerCreateKey(arg0: KeyRequest, arg1: ResellerId): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.resellerCreateKey(to_candid_KeyRequest_n1(this._uploadFile, this._downloadFile, arg0), arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.resellerCreateKey(to_candid_KeyRequest_n1(this._uploadFile, this._downloadFile, arg0), arg1);
+            return result;
+        }
+    }
+    async setKeyCreditCost(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setKeyCreditCost(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setKeyCreditCost(arg0);
+            return result;
+        }
+    }
+    async subtractCredits(arg0: ResellerId, arg1: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.subtractCredits(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.subtractCredits(arg0, arg1);
             return result;
         }
     }
@@ -295,92 +540,268 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateInjectorRedirect(arg0: InjectorId, arg1: string | null): Promise<void> {
+    async updateAccount(arg0: AdminAccount): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateInjectorRedirect(arg0, to_candid_opt_n1(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.updateAccount(to_candid_AdminAccount_n22(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateInjectorRedirect(arg0, to_candid_opt_n1(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.updateAccount(to_candid_AdminAccount_n22(this._uploadFile, this._downloadFile, arg0));
+            return result;
+        }
+    }
+    async updateAccountUsername(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateAccountUsername(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateAccountUsername(arg0);
+            return result;
+        }
+    }
+    async updateInjectorRedirect(arg0: InjectorId, arg1: string | null): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateInjectorRedirect(arg0, to_candid_opt_n3(this._uploadFile, this._downloadFile, arg1));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateInjectorRedirect(arg0, to_candid_opt_n3(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async updatePanelSettings(arg0: PanelSettings): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updatePanelSettings(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updatePanelSettings(arg0);
+            return result;
+        }
+    }
+    async validateKey(arg0: KeyId, arg1: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.validateKey(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.validateKey(arg0, arg1);
             return result;
         }
     }
 }
-function from_candid_Injector_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Injector): Injector {
-    return from_candid_record_n5(_uploadFile, _downloadFile, value);
+function from_candid_AdminAccount_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AdminAccount): AdminAccount {
+    return from_candid_record_n6(_uploadFile, _downloadFile, value);
 }
-function from_candid_LoginKey_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _LoginKey): LoginKey {
-    return from_candid_record_n9(_uploadFile, _downloadFile, value);
+function from_candid_Injector_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Injector): Injector {
+    return from_candid_record_n11(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_InjectorId]): InjectorId | null {
+function from_candid_LoginKey_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _LoginKey): LoginKey {
+    return from_candid_record_n15(_uploadFile, _downloadFile, value);
+}
+function from_candid_Reseller_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Reseller): Reseller {
+    return from_candid_record_n21(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Time]): Time | null {
+function from_candid_opt_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_InjectorId]): InjectorId | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
+function from_candid_opt_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [bigint]): bigint | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_opt_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ResellerId]): ResellerId | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_AdminAccount]): AdminAccount | null {
+    return value.length === 0 ? null : from_candid_AdminAccount_n5(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Time]): Time | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_record_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: _InjectorId;
+    status: boolean;
     created: _Time;
     name: string;
     redirectUrl: [] | [string];
 }): {
     id: InjectorId;
+    status: boolean;
     created: Time;
     name: string;
     redirectUrl?: string;
 } {
     return {
         id: value.id,
+        status: value.status,
         created: value.created,
         name: value.name,
-        redirectUrl: record_opt_to_undefined(from_candid_opt_n6(_uploadFile, _downloadFile, value.redirectUrl))
+        redirectUrl: record_opt_to_undefined(from_candid_opt_n12(_uploadFile, _downloadFile, value.redirectUrl))
     };
 }
-function from_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: _KeyId;
     key: string;
     created: _Time;
     injector: [] | [_InjectorId];
     expires: [] | [_Time];
+    deviceCount: bigint;
+    maxDevices: [] | [bigint];
     blocked: boolean;
     used: bigint;
+    resellerId: [] | [_ResellerId];
+    devicesUsed: bigint;
 }): {
     id: KeyId;
     key: string;
     created: Time;
     injector?: InjectorId;
     expires?: Time;
+    deviceCount: bigint;
+    maxDevices?: bigint;
     blocked: boolean;
     used: bigint;
+    resellerId?: ResellerId;
+    devicesUsed: bigint;
 } {
     return {
         id: value.id,
         key: value.key,
         created: value.created,
-        injector: record_opt_to_undefined(from_candid_opt_n10(_uploadFile, _downloadFile, value.injector)),
-        expires: record_opt_to_undefined(from_candid_opt_n11(_uploadFile, _downloadFile, value.expires)),
+        injector: record_opt_to_undefined(from_candid_opt_n16(_uploadFile, _downloadFile, value.injector)),
+        expires: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.expires)),
+        deviceCount: value.deviceCount,
+        maxDevices: record_opt_to_undefined(from_candid_opt_n17(_uploadFile, _downloadFile, value.maxDevices)),
         blocked: value.blocked,
-        used: value.used
+        used: value.used,
+        resellerId: record_opt_to_undefined(from_candid_opt_n18(_uploadFile, _downloadFile, value.resellerId)),
+        devicesUsed: value.devicesUsed
     };
 }
-function from_candid_vec_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Injector>): Array<Injector> {
-    return value.map((x)=>from_candid_Injector_n4(_uploadFile, _downloadFile, x));
+function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: _ResellerId;
+    created: _Time;
+    credits: bigint;
+    username: _Username;
+    password: _Password;
+    lastLogin: [] | [_Time];
+}): {
+    id: ResellerId;
+    created: Time;
+    credits: bigint;
+    username: Username;
+    password: Password;
+    lastLogin?: Time;
+} {
+    return {
+        id: value.id,
+        created: value.created,
+        credits: value.credits,
+        username: value.username,
+        password: value.password,
+        lastLogin: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.lastLogin))
+    };
 }
-function from_candid_vec_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_LoginKey>): Array<LoginKey> {
-    return value.map((x)=>from_candid_LoginKey_n8(_uploadFile, _downloadFile, x));
+function from_candid_record_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    created: _Time;
+    username: _Username;
+    password: _Password;
+    lastLogin: [] | [_Time];
+}): {
+    created: Time;
+    username: Username;
+    password: Password;
+    lastLogin?: Time;
+} {
+    return {
+        created: value.created,
+        username: value.username,
+        password: value.password,
+        lastLogin: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.lastLogin))
+    };
 }
-function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
+function from_candid_vec_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_LoginKey>): Array<LoginKey> {
+    return value.map((x)=>from_candid_LoginKey_n14(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Reseller>): Array<Reseller> {
+    return value.map((x)=>from_candid_Reseller_n20(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_AdminAccount>): Array<AdminAccount> {
+    return value.map((x)=>from_candid_AdminAccount_n5(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Injector>): Array<Injector> {
+    return value.map((x)=>from_candid_Injector_n10(_uploadFile, _downloadFile, x));
+}
+function to_candid_AdminAccount_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AdminAccount): _AdminAccount {
+    return to_candid_record_n23(_uploadFile, _downloadFile, value);
+}
+function to_candid_KeyRequest_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: KeyRequest): _KeyRequest {
+    return to_candid_record_n2(_uploadFile, _downloadFile, value);
+}
+function to_candid_opt_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
     return value === null ? candid_none() : candid_some(value);
 }
-function to_candid_opt_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: InjectorId | null): [] | [_InjectorId] {
-    return value === null ? candid_none() : candid_some(value);
+function to_candid_record_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    key: string;
+    injector?: InjectorId;
+    expires?: Time;
+    maxDevices?: bigint;
+    resellerId?: ResellerId;
+}): {
+    key: string;
+    injector: [] | [_InjectorId];
+    expires: [] | [_Time];
+    maxDevices: [] | [bigint];
+    resellerId: [] | [_ResellerId];
+} {
+    return {
+        key: value.key,
+        injector: value.injector ? candid_some(value.injector) : candid_none(),
+        expires: value.expires ? candid_some(value.expires) : candid_none(),
+        maxDevices: value.maxDevices ? candid_some(value.maxDevices) : candid_none(),
+        resellerId: value.resellerId ? candid_some(value.resellerId) : candid_none()
+    };
+}
+function to_candid_record_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    created: Time;
+    username: Username;
+    password: Password;
+    lastLogin?: Time;
+}): {
+    created: _Time;
+    username: _Username;
+    password: _Password;
+    lastLogin: [] | [_Time];
+} {
+    return {
+        created: value.created,
+        username: value.username,
+        password: value.password,
+        lastLogin: value.lastLogin ? candid_some(value.lastLogin) : candid_none()
+    };
 }
 export interface CreateActorOptions {
     agent?: Agent;

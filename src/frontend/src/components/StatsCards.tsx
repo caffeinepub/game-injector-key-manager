@@ -1,6 +1,6 @@
 import { useGetAllKeys } from "@/hooks/useQueries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Key, Lock, Unlock } from "lucide-react";
+import { Key, Lock, Unlock, Smartphone } from "lucide-react";
 
 export function StatsCards() {
   const { data: keys = [], isLoading } = useGetAllKeys();
@@ -8,11 +8,14 @@ export function StatsCards() {
   const totalKeys = keys.length;
   const activeKeys = keys.filter((key) => !key.blocked).length;
   const blockedKeys = keys.filter((key) => key.blocked).length;
+  const keysAtCapacity = keys.filter(
+    (key) => key.maxDevices && key.deviceCount >= key.maxDevices
+  ).length;
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
-        {[1, 2, 3].map((i) => (
+      <div className="grid gap-4 md:grid-cols-4 mb-6">
+        {[1, 2, 3, 4].map((i) => (
           <Card key={i} className="animate-pulse">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Loading...</CardTitle>
@@ -27,7 +30,7 @@ export function StatsCards() {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-3 mb-6">
+    <div className="grid gap-4 md:grid-cols-4 mb-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Keys</CardTitle>
@@ -58,6 +61,18 @@ export function StatsCards() {
         <CardContent>
           <div className="text-3xl font-bold font-mono text-destructive">
             {blockedKeys}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">At Capacity</CardTitle>
+          <Smartphone className="h-4 w-4 text-warning" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold font-mono text-warning">
+            {keysAtCapacity}
           </div>
         </CardContent>
       </Card>

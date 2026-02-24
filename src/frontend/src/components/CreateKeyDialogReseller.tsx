@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useCreateKey, useGetAllInjectors } from "@/hooks/useQueries";
+import { useResellerCreateKey, useGetAllInjectors } from "@/hooks/useQueries";
 import {
   Dialog,
   DialogContent,
@@ -19,9 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Loader2, Wand2, Infinity } from "lucide-react";
+import { Plus, Loader2, Wand2, Infinity, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import type { InjectorId } from "../backend";
+import type { InjectorId, ResellerId } from "../backend";
 
 const DURATION_PRESETS = [
   { label: "1 Hour", seconds: BigInt(3600) },
@@ -50,7 +50,17 @@ function generateRandomKey(): string {
   return result;
 }
 
-export function CreateKeyDialog() {
+interface CreateKeyDialogResellerProps {
+  resellerId: ResellerId;
+  currentCredits: bigint;
+  creditCost: bigint;
+}
+
+export function CreateKeyDialogReseller({
+  resellerId,
+  currentCredits,
+  creditCost,
+}: CreateKeyDialogResellerProps) {
   const [open, setOpen] = useState(false);
   const [keyValue, setKeyValue] = useState("");
   const [selectedDuration, setSelectedDuration] = useState<bigint>(
@@ -60,9 +70,11 @@ export function CreateKeyDialog() {
     null
   );
   const [maxDevices, setMaxDevices] = useState<number | null>(null);
-  const createKey = useCreateKey();
+  const createKey = useResellerCreateKey();
   const { data: injectors = [], isLoading: injectorsLoading } =
     useGetAllInjectors();
+
+  const canAfford = currentCredits >= creditCost;
 
   const handleOpen = (isOpen: boolean) => {
     setOpen(isOpen);
@@ -82,17 +94,27 @@ export function CreateKeyDialog() {
       return;
     }
 
+    if (!canAfford) {
+      toast.error(`Insufficient credits. You need ${creditCost.toString()} credits.`);
+      return;
+    }
+
     try {
       await createKey.mutateAsync({
+        resellerId,
         keyValue: keyValue.trim(),
         expiresInSeconds: selectedDuration,
         injectorId: selectedInjector,
         maxDevices: maxDevices !== null ? BigInt(maxDevices) : undefined,
       });
-      toast.success("Key created successfully");
+      toast.success(`Key created successfully. ${creditCost.toString()} credits deducted.`);
       setOpen(false);
-    } catch (error) {
-      toast.error("Failed to create key");
+    } catch (error: any) {
+      if (error.message?.includes("Insufficient credits")) {
+        toast.error("Insufficient credits. Please contact admin for more credits.");
+      } else {
+        toast.error(error.message || "Failed to create key");
+      }
       console.error(error);
     }
   };
@@ -100,9 +122,9 @@ export function CreateKeyDialog() {
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button className="gap-2" disabled={!canAfford}>
           <Plus className="h-4 w-4" />
-          Create Key
+          Create Key ({creditCost.toString()} credits)
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
@@ -110,11 +132,22 @@ export function CreateKeyDialog() {
           <DialogHeader>
             <DialogTitle>Create New Login Key</DialogTitle>
             <DialogDescription>
-              Generate a new authentication key with custom duration and device limits.
+              Generate a new authentication key. This will cost {creditCost.toString()} credits.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-6">
+            {/* Credit Warning */}
+            {!canAfford && (
+              <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>
+                  Insufficient credits. You have {currentCredits.toString()} but need{" "}
+                  {creditCost.toString()}.
+                </span>
+              </div>
+            )}
+
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="keyValue">Key Value</Label>
@@ -220,6 +253,22 @@ export function CreateKeyDialog() {
                 new devices will be blocked.
               </p>
             </div>
+
+            {/* Cost Display */}
+            <div className="p-3 bg-primary/10 border border-primary/20 rounded text-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">Cost:</span>
+                <span className="font-bold text-lg">
+                  {creditCost.toString()} credits
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-1 text-muted-foreground">
+                <span>Remaining after:</span>
+                <span>
+                  {(currentCredits - creditCost).toString()} credits
+                </span>
+              </div>
+            </div>
           </div>
 
           <DialogFooter>
@@ -230,7 +279,7 @@ export function CreateKeyDialog() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={createKey.isPending}>
+            <Button type="submit" disabled={createKey.isPending || !canAfford}>
               {createKey.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}

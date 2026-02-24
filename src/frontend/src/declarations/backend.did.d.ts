@@ -10,43 +10,89 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AdminAccount {
+  'created' : Time,
+  'username' : Username,
+  'password' : Password,
+  'lastLogin' : [] | [Time],
+}
 export interface Injector {
   'id' : InjectorId,
+  'status' : boolean,
   'created' : Time,
   'name' : string,
   'redirectUrl' : [] | [string],
 }
 export type InjectorId = bigint;
 export type KeyId = bigint;
+export interface KeyRequest {
+  'key' : string,
+  'injector' : [] | [InjectorId],
+  'expires' : [] | [Time],
+  'maxDevices' : [] | [bigint],
+  'resellerId' : [] | [ResellerId],
+}
 export interface LoginKey {
   'id' : KeyId,
   'key' : string,
   'created' : Time,
   'injector' : [] | [InjectorId],
   'expires' : [] | [Time],
+  'deviceCount' : bigint,
+  'maxDevices' : [] | [bigint],
   'blocked' : boolean,
   'used' : bigint,
+  'resellerId' : [] | [ResellerId],
+  'devicesUsed' : bigint,
 }
+export interface PanelSettings { 'themePreset' : string, 'panelName' : string }
 export type Password = string;
+export interface Reseller {
+  'id' : ResellerId,
+  'created' : Time,
+  'credits' : bigint,
+  'username' : Username,
+  'password' : Password,
+  'lastLogin' : [] | [Time],
+}
+export type ResellerId = bigint;
 export type Time = bigint;
 export type Username = string;
 export interface _SERVICE {
+  'addCredits' : ActorMethod<[ResellerId, bigint], undefined>,
+  'adminCreateKey' : ActorMethod<[KeyRequest], undefined>,
   'authenticate' : ActorMethod<[Username, Password], boolean>,
+  'authenticateReseller' : ActorMethod<[Username, Password], ResellerId>,
   'blockKey' : ActorMethod<[KeyId], undefined>,
   'createInjector' : ActorMethod<[string, [] | [string]], undefined>,
-  'createKey' : ActorMethod<[string, bigint, [] | [InjectorId]], undefined>,
+  'createReseller' : ActorMethod<[Username, Password], undefined>,
   'deleteInjector' : ActorMethod<[InjectorId], undefined>,
+  'deleteReseller' : ActorMethod<[ResellerId], undefined>,
   'generateLoginRedirectUrl' : ActorMethod<[InjectorId], string>,
+  'getAccountByUsername' : ActorMethod<[Username], [] | [AdminAccount]>,
+  'getAllAccounts' : ActorMethod<[], Array<AdminAccount>>,
   'getAllInjectors' : ActorMethod<[], Array<Injector>>,
   'getAllKeys' : ActorMethod<[], Array<LoginKey>>,
+  'getAllResellers' : ActorMethod<[], Array<Reseller>>,
+  'getDevicesForKey' : ActorMethod<[KeyId], Array<string>>,
   'getInjectorById' : ActorMethod<[InjectorId], Injector>,
   'getKeyById' : ActorMethod<[KeyId], LoginKey>,
+  'getKeyCreditCost' : ActorMethod<[], bigint>,
+  'getKeysByReseller' : ActorMethod<[ResellerId], Array<LoginKey>>,
+  'getPanelSettings' : ActorMethod<[], PanelSettings>,
   'isValidKey' : ActorMethod<[KeyId], boolean>,
+  'resellerCreateKey' : ActorMethod<[KeyRequest, ResellerId], undefined>,
+  'setKeyCreditCost' : ActorMethod<[bigint], undefined>,
+  'subtractCredits' : ActorMethod<[ResellerId, bigint], undefined>,
   'unblockKey' : ActorMethod<[KeyId], undefined>,
+  'updateAccount' : ActorMethod<[AdminAccount], undefined>,
+  'updateAccountUsername' : ActorMethod<[string], undefined>,
   'updateInjectorRedirect' : ActorMethod<
     [InjectorId, [] | [string]],
     undefined
   >,
+  'updatePanelSettings' : ActorMethod<[PanelSettings], undefined>,
+  'validateKey' : ActorMethod<[KeyId, string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

@@ -8,13 +8,28 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const ResellerId = IDL.Nat;
+export const InjectorId = IDL.Nat;
+export const Time = IDL.Int;
+export const KeyRequest = IDL.Record({
+  'key' : IDL.Text,
+  'injector' : IDL.Opt(InjectorId),
+  'expires' : IDL.Opt(Time),
+  'maxDevices' : IDL.Opt(IDL.Nat),
+  'resellerId' : IDL.Opt(ResellerId),
+});
 export const Username = IDL.Text;
 export const Password = IDL.Text;
 export const KeyId = IDL.Nat;
-export const InjectorId = IDL.Nat;
-export const Time = IDL.Int;
+export const AdminAccount = IDL.Record({
+  'created' : Time,
+  'username' : Username,
+  'password' : Password,
+  'lastLogin' : IDL.Opt(Time),
+});
 export const Injector = IDL.Record({
   'id' : InjectorId,
+  'status' : IDL.Bool,
   'created' : Time,
   'name' : IDL.Text,
   'redirectUrl' : IDL.Opt(IDL.Text),
@@ -25,36 +40,89 @@ export const LoginKey = IDL.Record({
   'created' : Time,
   'injector' : IDL.Opt(InjectorId),
   'expires' : IDL.Opt(Time),
+  'deviceCount' : IDL.Nat,
+  'maxDevices' : IDL.Opt(IDL.Nat),
   'blocked' : IDL.Bool,
   'used' : IDL.Nat,
+  'resellerId' : IDL.Opt(ResellerId),
+  'devicesUsed' : IDL.Nat,
+});
+export const Reseller = IDL.Record({
+  'id' : ResellerId,
+  'created' : Time,
+  'credits' : IDL.Nat,
+  'username' : Username,
+  'password' : Password,
+  'lastLogin' : IDL.Opt(Time),
+});
+export const PanelSettings = IDL.Record({
+  'themePreset' : IDL.Text,
+  'panelName' : IDL.Text,
 });
 
 export const idlService = IDL.Service({
+  'addCredits' : IDL.Func([ResellerId, IDL.Nat], [], []),
+  'adminCreateKey' : IDL.Func([KeyRequest], [], []),
   'authenticate' : IDL.Func([Username, Password], [IDL.Bool], []),
+  'authenticateReseller' : IDL.Func([Username, Password], [ResellerId], []),
   'blockKey' : IDL.Func([KeyId], [], []),
   'createInjector' : IDL.Func([IDL.Text, IDL.Opt(IDL.Text)], [], []),
-  'createKey' : IDL.Func([IDL.Text, IDL.Nat, IDL.Opt(InjectorId)], [], []),
+  'createReseller' : IDL.Func([Username, Password], [], []),
   'deleteInjector' : IDL.Func([InjectorId], [], []),
+  'deleteReseller' : IDL.Func([ResellerId], [], []),
   'generateLoginRedirectUrl' : IDL.Func([InjectorId], [IDL.Text], ['query']),
+  'getAccountByUsername' : IDL.Func(
+      [Username],
+      [IDL.Opt(AdminAccount)],
+      ['query'],
+    ),
+  'getAllAccounts' : IDL.Func([], [IDL.Vec(AdminAccount)], ['query']),
   'getAllInjectors' : IDL.Func([], [IDL.Vec(Injector)], ['query']),
   'getAllKeys' : IDL.Func([], [IDL.Vec(LoginKey)], ['query']),
+  'getAllResellers' : IDL.Func([], [IDL.Vec(Reseller)], ['query']),
+  'getDevicesForKey' : IDL.Func([KeyId], [IDL.Vec(IDL.Text)], ['query']),
   'getInjectorById' : IDL.Func([InjectorId], [Injector], ['query']),
   'getKeyById' : IDL.Func([KeyId], [LoginKey], ['query']),
+  'getKeyCreditCost' : IDL.Func([], [IDL.Nat], ['query']),
+  'getKeysByReseller' : IDL.Func([ResellerId], [IDL.Vec(LoginKey)], ['query']),
+  'getPanelSettings' : IDL.Func([], [PanelSettings], ['query']),
   'isValidKey' : IDL.Func([KeyId], [IDL.Bool], []),
+  'resellerCreateKey' : IDL.Func([KeyRequest, ResellerId], [], []),
+  'setKeyCreditCost' : IDL.Func([IDL.Nat], [], []),
+  'subtractCredits' : IDL.Func([ResellerId, IDL.Nat], [], []),
   'unblockKey' : IDL.Func([KeyId], [], []),
+  'updateAccount' : IDL.Func([AdminAccount], [], []),
+  'updateAccountUsername' : IDL.Func([IDL.Text], [], []),
   'updateInjectorRedirect' : IDL.Func([InjectorId, IDL.Opt(IDL.Text)], [], []),
+  'updatePanelSettings' : IDL.Func([PanelSettings], [], []),
+  'validateKey' : IDL.Func([KeyId, IDL.Text], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const ResellerId = IDL.Nat;
+  const InjectorId = IDL.Nat;
+  const Time = IDL.Int;
+  const KeyRequest = IDL.Record({
+    'key' : IDL.Text,
+    'injector' : IDL.Opt(InjectorId),
+    'expires' : IDL.Opt(Time),
+    'maxDevices' : IDL.Opt(IDL.Nat),
+    'resellerId' : IDL.Opt(ResellerId),
+  });
   const Username = IDL.Text;
   const Password = IDL.Text;
   const KeyId = IDL.Nat;
-  const InjectorId = IDL.Nat;
-  const Time = IDL.Int;
+  const AdminAccount = IDL.Record({
+    'created' : Time,
+    'username' : Username,
+    'password' : Password,
+    'lastLogin' : IDL.Opt(Time),
+  });
   const Injector = IDL.Record({
     'id' : InjectorId,
+    'status' : IDL.Bool,
     'created' : Time,
     'name' : IDL.Text,
     'redirectUrl' : IDL.Opt(IDL.Text),
@@ -65,28 +133,70 @@ export const idlFactory = ({ IDL }) => {
     'created' : Time,
     'injector' : IDL.Opt(InjectorId),
     'expires' : IDL.Opt(Time),
+    'deviceCount' : IDL.Nat,
+    'maxDevices' : IDL.Opt(IDL.Nat),
     'blocked' : IDL.Bool,
     'used' : IDL.Nat,
+    'resellerId' : IDL.Opt(ResellerId),
+    'devicesUsed' : IDL.Nat,
+  });
+  const Reseller = IDL.Record({
+    'id' : ResellerId,
+    'created' : Time,
+    'credits' : IDL.Nat,
+    'username' : Username,
+    'password' : Password,
+    'lastLogin' : IDL.Opt(Time),
+  });
+  const PanelSettings = IDL.Record({
+    'themePreset' : IDL.Text,
+    'panelName' : IDL.Text,
   });
   
   return IDL.Service({
+    'addCredits' : IDL.Func([ResellerId, IDL.Nat], [], []),
+    'adminCreateKey' : IDL.Func([KeyRequest], [], []),
     'authenticate' : IDL.Func([Username, Password], [IDL.Bool], []),
+    'authenticateReseller' : IDL.Func([Username, Password], [ResellerId], []),
     'blockKey' : IDL.Func([KeyId], [], []),
     'createInjector' : IDL.Func([IDL.Text, IDL.Opt(IDL.Text)], [], []),
-    'createKey' : IDL.Func([IDL.Text, IDL.Nat, IDL.Opt(InjectorId)], [], []),
+    'createReseller' : IDL.Func([Username, Password], [], []),
     'deleteInjector' : IDL.Func([InjectorId], [], []),
+    'deleteReseller' : IDL.Func([ResellerId], [], []),
     'generateLoginRedirectUrl' : IDL.Func([InjectorId], [IDL.Text], ['query']),
+    'getAccountByUsername' : IDL.Func(
+        [Username],
+        [IDL.Opt(AdminAccount)],
+        ['query'],
+      ),
+    'getAllAccounts' : IDL.Func([], [IDL.Vec(AdminAccount)], ['query']),
     'getAllInjectors' : IDL.Func([], [IDL.Vec(Injector)], ['query']),
     'getAllKeys' : IDL.Func([], [IDL.Vec(LoginKey)], ['query']),
+    'getAllResellers' : IDL.Func([], [IDL.Vec(Reseller)], ['query']),
+    'getDevicesForKey' : IDL.Func([KeyId], [IDL.Vec(IDL.Text)], ['query']),
     'getInjectorById' : IDL.Func([InjectorId], [Injector], ['query']),
     'getKeyById' : IDL.Func([KeyId], [LoginKey], ['query']),
+    'getKeyCreditCost' : IDL.Func([], [IDL.Nat], ['query']),
+    'getKeysByReseller' : IDL.Func(
+        [ResellerId],
+        [IDL.Vec(LoginKey)],
+        ['query'],
+      ),
+    'getPanelSettings' : IDL.Func([], [PanelSettings], ['query']),
     'isValidKey' : IDL.Func([KeyId], [IDL.Bool], []),
+    'resellerCreateKey' : IDL.Func([KeyRequest, ResellerId], [], []),
+    'setKeyCreditCost' : IDL.Func([IDL.Nat], [], []),
+    'subtractCredits' : IDL.Func([ResellerId, IDL.Nat], [], []),
     'unblockKey' : IDL.Func([KeyId], [], []),
+    'updateAccount' : IDL.Func([AdminAccount], [], []),
+    'updateAccountUsername' : IDL.Func([IDL.Text], [], []),
     'updateInjectorRedirect' : IDL.Func(
         [InjectorId, IDL.Opt(IDL.Text)],
         [],
         [],
       ),
+    'updatePanelSettings' : IDL.Func([PanelSettings], [], []),
+    'validateKey' : IDL.Func([KeyId, IDL.Text], [IDL.Bool], []),
   });
 };
 

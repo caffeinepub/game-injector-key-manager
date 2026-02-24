@@ -1,73 +1,61 @@
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
+import List "mo:core/List";
 import Time "mo:core/Time";
 
 module {
-  type KeyId = Nat;
-  type InjectorId = Nat;
-  type Password = Text;
-  type Username = Text;
-
-  type OldKey = {
-    id : KeyId;
+  // Old record types
+  type OldLoginKey = {
+    id : Nat;
     key : Text;
     created : Time.Time;
     expires : ?Time.Time;
     used : Nat;
     blocked : Bool;
+    injector : ?Nat;
+    maxDevices : ?Nat;
+    deviceCount : Nat;
+    devicesUsed : Nat;
   };
 
-  type OldInjector = {
-    id : InjectorId;
-    name : Text;
-    redirectUrl : ?Text;
-    created : Time.Time;
-  };
+  type OldLoginKeys = Map.Map<Nat, OldLoginKey>;
 
-  type NewAdminAccount = {
-    username : Username;
-    password : Password;
-    created : Time.Time;
-    lastLogin : ?Time.Time;
-  };
-
-  type NewKey = {
-    id : KeyId;
+  type NewLoginKey = {
+    id : Nat;
     key : Text;
     created : Time.Time;
     expires : ?Time.Time;
     used : Nat;
     blocked : Bool;
-    injector : ?InjectorId;
+    injector : ?Nat;
+    maxDevices : ?Nat;
+    deviceCount : Nat;
+    devicesUsed : Nat;
+    resellerId : ?Nat;
   };
 
-  type NewInjector = OldInjector;
+  type NewLoginKeys = Map.Map<Nat, NewLoginKey>;
 
+  // Old actor state
   type OldActor = {
-    keys : Map.Map<KeyId, OldKey>;
-    injectors : Map.Map<InjectorId, OldInjector>;
-    nextKeyId : Nat;
-    nextInjectorId : Nat;
+    keys : OldLoginKeys;
   };
 
+  // New actor state
   type NewActor = {
-    keys : Map.Map<KeyId, NewKey>;
-    injectors : Map.Map<InjectorId, NewInjector>;
-    adminUsername : Username;
-    adminAccount : ?NewAdminAccount;
-    nextKeyId : Nat;
-    nextInjectorId : Nat;
+    keys : NewLoginKeys;
   };
 
+  // Migration function called by the main actor via the with-clause
   public func run(old : OldActor) : NewActor {
-    let newKeys = old.keys.map<KeyId, OldKey, NewKey>(
-      func(_id, oldKey) { { oldKey with injector = null } }
+    let newLoginKeys = old.keys.map<Nat, OldLoginKey, NewLoginKey>(
+      func(_id, oldLoginKey) {
+        {
+          oldLoginKey with
+          resellerId = null;
+        };
+      }
     );
-    {
-      old with
-      keys = newKeys;
-      adminUsername = "Gaurav";
-      adminAccount = null;
-    };
+    { keys = newLoginKeys };
   };
 };
