@@ -7,8 +7,6 @@ import Time "mo:core/Time";
 import Runtime "mo:core/Runtime";
 import Iter "mo:core/Iter";
 
-
-
 actor {
   type KeyId = Nat;
   type InjectorId = Nat;
@@ -92,7 +90,8 @@ actor {
     themePreset = "dark";
   };
 
-  // Authentication
+  let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
   public shared ({ caller }) func authenticate(username : Username, password : Password) : async Bool {
     if (Text.equal(username, adminUsername) and Text.equal(password, "Gaurav_20")) {
       adminAccount := ?{
@@ -113,7 +112,6 @@ actor {
     };
   };
 
-  // -- Reseller Management --
   func getReseller(resellerId : ResellerId) : Reseller {
     switch (resellers.get(resellerId)) {
       case (null) { Runtime.trap("RESELLER_NOT_FOUND") };
@@ -182,7 +180,6 @@ actor {
     keyCreditCost;
   };
 
-  // -- Login Key Management --
   func getKey(keyId : KeyId) : LoginKey {
     switch (keys.get(keyId)) {
       case (null) { Runtime.trap("KEY_NOT_FOUND") };
@@ -190,8 +187,24 @@ actor {
     };
   };
 
+  func keyExists(key : Text) : Bool {
+    let found = keys.values().toArray().find(func(k) { k.key == key });
+    switch (found) {
+      case (null) { false };
+      case (?_) { true };
+    };
+  };
+
+  public shared ({ caller }) func checkKeyExists(key : Text) : async Bool {
+    keyExists(key);
+  };
+
   public shared ({ caller }) func adminCreateKey(request : KeyRequest) : async () {
     authenticated();
+
+    if (keyExists(request.key)) {
+      Runtime.trap("This key already exists");
+    };
 
     let newKey : LoginKey = {
       id = nextKeyId;
@@ -211,6 +224,35 @@ actor {
     nextKeyId += 1;
   };
 
+  func generateRandomKey() : Text {
+    let chars = Array.fromIter(alphabet.chars());
+    let charsSize = chars.size();
+
+    // Use Time.now() to get a different seed each time this is called
+    let baseSeed = Int.abs(Time.now());
+
+    func getRandomChar(index : Nat) : Char {
+      // Combine base seed with index and nextKeyId to create variation
+      let seed = baseSeed + index * 7919 + nextKeyId * 6151;
+      let randomIndex = seed % charsSize;
+      chars[randomIndex];
+    };
+
+    func getRandomString(length : Nat, offset : Nat) : Text {
+      if (length == 0) {
+        "";
+      } else {
+        let char = getRandomChar(offset);
+        let rest = getRandomString(length - 1, offset + 1);
+        char.toText() # rest;
+      };
+    };
+
+    let randomPrefix = "GAURAV-";
+    let result = randomPrefix # getRandomString(5, 0);
+    result;
+  };
+
   public shared ({ caller }) func resellerCreateKey(request : KeyRequest, resellerId : ResellerId) : async () {
     let reseller = getReseller(resellerId);
 
@@ -218,9 +260,15 @@ actor {
       Runtime.trap("INSUFFICIENT_CREDITS");
     };
 
+    let generatedKey = generateRandomKey();
+
+    if (generatedKey.size() == 0) {
+      Runtime.trap("ERROR_GENERATING_KEY");
+    };
+
     let newKey : LoginKey = {
       id = nextKeyId;
-      key = request.key;
+      key = generatedKey;
       created = Time.now();
       expires = request.expires;
       used = 0;
@@ -331,7 +379,6 @@ actor {
     filtered.toArray();
   };
 
-  // -- Injector Management --
   func getInjector(injectorId : InjectorId) : Injector {
     switch (injectors.get(injectorId)) {
       case (null) { Runtime.trap("INJECTOR_NOT_FOUND") };
@@ -429,7 +476,6 @@ actor {
     };
   };
 
-  // Panel Customization Settings Management
   public shared ({ caller }) func updatePanelSettings(newSettings : PanelSettings) : async () {
     authenticated();
     panelSettings := newSettings;
@@ -439,13 +485,11 @@ actor {
     panelSettings;
   };
 
-  // Public HTTP endpoint for login verification (no authentication required)
   public query ({ caller }) func verifyLogin(key : Text, deviceId : Text) : async {
     valid : Bool;
     message : Text;
     status : Text;
   } {
-    // Find the key by key value
     let keyEntry = keys.toArray().find(
       func((_, entry)) {
         Text.equal(entry.key, key);
@@ -457,12 +501,10 @@ actor {
         { valid = false; message = "Key not found"; status = "error" };
       };
       case (?(_, loginKey)) {
-        // Check for blocked key
         if (loginKey.blocked) {
           return { valid = false; message = "Key is blocked"; status = "error" };
         };
 
-        // Check for expired key
         switch (loginKey.expires) {
           case (null) {};
           case (?expires) {
@@ -476,7 +518,6 @@ actor {
           };
         };
 
-        // Check device count
         switch (loginKey.maxDevices) {
           case (null) {};
           case (?maxDevices) {
@@ -488,7 +529,6 @@ actor {
               };
             };
 
-            // Check if device has already been used
             let deviceUsed = switch (deviceRegistries.get(loginKey.id)) {
               case (null) { false };
               case (?devicesList) {
@@ -513,7 +553,6 @@ actor {
           };
         };
 
-        // Update device records
         let newDeviceList = switch (deviceRegistries.get(loginKey.id)) {
           case (null) { List.empty<DeviceRegistry>() };
           case (?existing) { existing };
@@ -521,8 +560,29 @@ actor {
         newDeviceList.add({ deviceId; used = Time.now() });
         deviceRegistries.add(loginKey.id, newDeviceList);
 
-        // Return success response
         { valid = true; message = "Key is valid"; status = "success" };
+      };
+    };
+  };
+
+  // ------ DELETE KEY -----------
+  public shared ({ caller }) func deleteKey(keyId : KeyId, resellerId : ?ResellerId) : async () {
+    switch (keys.get(keyId)) {
+      case (null) { Runtime.trap("KEY_NOT_FOUND") };
+      case (?key) {
+        switch (resellerId, key.resellerId) {
+          case (null, _) {
+            authenticated();
+            keys.remove(keyId);
+          };
+          case (?(reseller), ?creator) {
+            if (reseller != creator) {
+              Runtime.trap("PERMISSION_DENIED - RESELLER_NOT_OWNER");
+            };
+            keys.remove(keyId);
+          };
+          case (_) { Runtime.trap("PERMISSION_DENIED - RESELLER_ID_MISSING") };
+        };
       };
     };
   };

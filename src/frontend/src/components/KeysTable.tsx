@@ -3,6 +3,7 @@ import {
   useGetAllKeys,
   useBlockKey,
   useUnblockKey,
+  useDeleteKey,
   useGetAllInjectors,
 } from "@/hooks/useQueries";
 import {
@@ -32,9 +33,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Copy, Lock, Unlock, Loader2, Smartphone } from "lucide-react";
+import { Copy, Lock, Unlock, Loader2, Smartphone, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { LoginKey } from "../backend";
+import { KeyDetailsModal } from "./KeyDetailsModal";
 
 function formatTimestamp(timestamp?: bigint): string {
   if (!timestamp || timestamp === BigInt(0)) {
@@ -62,16 +64,27 @@ interface ConfirmDialog {
   action: "block" | "unblock";
 }
 
+interface DeleteDialog {
+  open: boolean;
+  key: LoginKey | null;
+}
+
 export function KeysTable() {
   const { data: keys = [], isLoading } = useGetAllKeys();
   const { data: injectors = [] } = useGetAllInjectors();
   const blockKey = useBlockKey();
   const unblockKey = useUnblockKey();
+  const deleteKey = useDeleteKey();
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog>({
     open: false,
     key: null,
     action: "block",
   });
+  const [deleteDialog, setDeleteDialog] = useState<DeleteDialog>({
+    open: false,
+    key: null,
+  });
+  const [selectedKey, setSelectedKey] = useState<LoginKey | null>(null);
 
   // Helper function to get injector name by ID
   const getInjectorName = (injectorId?: bigint): string => {
@@ -119,6 +132,47 @@ export function KeysTable() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteDialog.key) return;
+
+    try {
+      await deleteKey.mutateAsync(deleteDialog.key.id);
+      toast.success("Key deleted successfully");
+      setDeleteDialog({ open: false, key: null });
+    } catch (error) {
+      toast.error("Failed to delete key");
+      console.error(error);
+    }
+  };
+
+  const handleRowClick = (e: React.MouseEvent, key: LoginKey) => {
+    // Don't open modal if clicking on action buttons or their children
+    const target = e.target as HTMLElement;
+    const isActionButton = target.closest('button') || target.closest('[role="button"]');
+    
+    if (!isActionButton) {
+      setSelectedKey(key);
+    }
+  };
+
+  const handleModalDelete = () => {
+    if (selectedKey) {
+      setDeleteDialog({ open: true, key: selectedKey });
+      setSelectedKey(null);
+    }
+  };
+
+  const handleModalBlockUnblock = () => {
+    if (selectedKey) {
+      setConfirmDialog({
+        open: true,
+        key: selectedKey,
+        action: selectedKey.blocked ? "unblock" : "block",
+      });
+      setSelectedKey(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -157,7 +211,7 @@ export function KeysTable() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="font-mono">ID</TableHead>
-                    <TableHead className="font-mono">Key Value</TableHead>
+                    <TableHead className="font-mono min-w-[200px]">Key Value</TableHead>
                     <TableHead>Injector</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Expires</TableHead>
@@ -169,14 +223,18 @@ export function KeysTable() {
                 </TableHeader>
                 <TableBody>
                   {keys.map((key) => (
-                    <TableRow key={key.id.toString()}>
+                    <TableRow 
+                      key={key.id.toString()}
+                      onClick={(e) => handleRowClick(e, key)}
+                      className="cursor-pointer hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-colors"
+                    >
                       <TableCell className="font-mono text-xs">
                         {key.id.toString()}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="min-w-[200px]">
                         <div className="flex items-center gap-2">
                           <code className="px-2 py-1 bg-muted font-mono text-xs">
-                            {key.key.substring(0, 16)}...
+                            {key.key}
                           </code>
                           <Button
                             variant="ghost"
@@ -240,39 +298,55 @@ export function KeysTable() {
                         {key.used.toString()}
                       </TableCell>
                       <TableCell className="text-right">
-                        {key.blocked ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              setConfirmDialog({
-                                open: true,
-                                key,
-                                action: "unblock",
-                              })
-                            }
-                            className="gap-2"
-                          >
-                            <Unlock className="h-3 w-3" />
-                            Unblock
-                          </Button>
-                        ) : (
+                        <div className="flex items-center justify-end gap-2">
+                          {key.blocked ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setConfirmDialog({
+                                  open: true,
+                                  key,
+                                  action: "unblock",
+                                })
+                              }
+                              className="gap-2"
+                            >
+                              <Unlock className="h-3 w-3" />
+                              Unblock
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() =>
+                                setConfirmDialog({
+                                  open: true,
+                                  key,
+                                  action: "block",
+                                })
+                              }
+                              className="gap-2"
+                            >
+                              <Lock className="h-3 w-3" />
+                              Block
+                            </Button>
+                          )}
                           <Button
                             variant="destructive"
                             size="sm"
                             onClick={() =>
-                              setConfirmDialog({
+                              setDeleteDialog({
                                 open: true,
                                 key,
-                                action: "block",
                               })
                             }
                             className="gap-2"
                           >
-                            <Lock className="h-3 w-3" />
-                            Block
+                            <Trash2 className="h-3 w-3" />
+                            Delete
                           </Button>
-                        )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -319,6 +393,49 @@ export function KeysTable() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) =>
+          !open && setDeleteDialog({ open: false, key: null })
+        }
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Key?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this key? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteKey.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteKey.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Delete Key
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <KeyDetailsModal
+        keyData={selectedKey}
+        open={!!selectedKey}
+        onOpenChange={(open) => !open && setSelectedKey(null)}
+        onDelete={handleModalDelete}
+        onBlockUnblock={handleModalBlockUnblock}
+        showBlockUnblock={true}
+        isDeleting={deleteKey.isPending}
+        isBlockingUnblocking={blockKey.isPending || unblockKey.isPending}
+        getInjectorName={getInjectorName}
+        getDeviceUsageDisplay={getDeviceUsageDisplay}
+        formatTimestamp={formatTimestamp}
+      />
     </>
   );
 }

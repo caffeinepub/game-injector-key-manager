@@ -166,15 +166,7 @@ export function ResellerDashboard({ resellerId, onLogout }: ResellerDashboardPro
 
         <footer className="border-t border-white/10 bg-black/20 backdrop-blur-md mt-16">
           <div className="container mx-auto px-4 py-6 text-center text-sm text-purple-200">
-            © 2026. Built with ❤️ using{" "}
-            <a
-              href="https://caffeine.ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-purple-300 hover:underline"
-            >
-              caffeine.ai
-            </a>
+            © 2026. Made by Gaurav
           </div>
         </footer>
       </div>

@@ -78,6 +78,25 @@ export function useUnblockKey() {
   });
 }
 
+export function useDeleteKey() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (keyId: KeyId) => {
+      if (!actor) throw new Error("Actor not initialized");
+      // Pass null for resellerId - backend will check caller's permission
+      await actor.deleteKey(keyId, null);
+    },
+    onSuccess: () => {
+      // Invalidate all key-related queries
+      queryClient.invalidateQueries({ queryKey: ["keys"] });
+      // Also invalidate reseller-specific keys queries
+      queryClient.invalidateQueries({ queryKey: ["keys", "reseller"] });
+    },
+  });
+}
+
 // Injector queries and mutations
 export function useGetAllInjectors() {
   const { actor, isFetching } = useActor();

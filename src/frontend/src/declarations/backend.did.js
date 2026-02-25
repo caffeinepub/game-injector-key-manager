@@ -66,9 +66,11 @@ export const idlService = IDL.Service({
   'authenticate' : IDL.Func([Username, Password], [IDL.Bool], []),
   'authenticateReseller' : IDL.Func([Username, Password], [ResellerId], []),
   'blockKey' : IDL.Func([KeyId], [], []),
+  'checkKeyExists' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'createInjector' : IDL.Func([IDL.Text, IDL.Opt(IDL.Text)], [], []),
   'createReseller' : IDL.Func([Username, Password], [], []),
   'deleteInjector' : IDL.Func([InjectorId], [], []),
+  'deleteKey' : IDL.Func([KeyId, IDL.Opt(ResellerId)], [], []),
   'deleteReseller' : IDL.Func([ResellerId], [], []),
   'generateLoginRedirectUrl' : IDL.Func([InjectorId], [IDL.Text], ['query']),
   'getAccountByUsername' : IDL.Func(
@@ -174,9 +176,11 @@ export const idlFactory = ({ IDL }) => {
     'authenticate' : IDL.Func([Username, Password], [IDL.Bool], []),
     'authenticateReseller' : IDL.Func([Username, Password], [ResellerId], []),
     'blockKey' : IDL.Func([KeyId], [], []),
+    'checkKeyExists' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'createInjector' : IDL.Func([IDL.Text, IDL.Opt(IDL.Text)], [], []),
     'createReseller' : IDL.Func([Username, Password], [], []),
     'deleteInjector' : IDL.Func([InjectorId], [], []),
+    'deleteKey' : IDL.Func([KeyId, IDL.Opt(ResellerId)], [], []),
     'deleteReseller' : IDL.Func([ResellerId], [], []),
     'generateLoginRedirectUrl' : IDL.Func([InjectorId], [IDL.Text], ['query']),
     'getAccountByUsername' : IDL.Func(

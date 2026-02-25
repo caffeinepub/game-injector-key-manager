@@ -2,67 +2,57 @@
 
 ## Current State
 
-The application has:
-- **Admin Dashboard (App.tsx)**: Main dashboard with tabs for keys, injectors, resellers, API docs, and settings. Currently uses standard Tailwind background colors with theme toggle support.
-- **Reseller Dashboard (ResellerDashboard.tsx)**: Credit-based key creation portal with credit information card and keys table. Currently uses standard Tailwind background colors with theme toggle.
-- **Welcome/Login Pages**: Already styled with red-black theme and animated white particles background with skull icons and glowing effects.
+The application is a game injector dashboard with admin and reseller authentication, key management, and injector management features. Current key generation works as follows:
 
-Both dashboards use standard Tailwind CSS background styling without animated particle effects.
+- **Backend**: Properly generates unique random keys (reseller format: `GAURAV-XXXXX` with random letters+numbers, admin format: custom or auto-generated)
+- **Frontend Display Bug**: Table and popup both show hardcoded placeholder "GAURAV-ABCDE" for all keys instead of displaying the actual unique generated keys
+- **Key Management Features**: Create, view, delete, block/unblock keys with device limits, expiration dates, and injector assignment
+- **UI Theme**: Purple-white dashboard with animated particles, red-black login screens, pill-shaped inputs
 
 ## Requested Changes (Diff)
 
 ### Add
-- **Animated particle background** for Admin Dashboard with:
-  - Purple and white color scheme
-  - White particles continuously moving (pre-animated, instant motion)
-  - Particles load in already-moving state (no delay or fade-in)
-  - Similar particle system as welcome/login pages but with purple-white theme
-- **Animated particle background** for Reseller Dashboard with same specifications
-- Purple-white gradient theme styling for both dashboards
+- None (this is a bug fix)
 
 ### Modify
-- Admin Dashboard (App.tsx): Add particle canvas background, update theme colors to purple-white scheme
-- Reseller Dashboard (ResellerDashboard.tsx): Add particle canvas background, update theme colors to purple-white scheme
+- **Key Value Display in Table**: Fix frontend to display actual unique generated keys instead of hardcoded "GAURAV-ABCDE" placeholder
+- **Key Value Display in Popup**: Fix popup to show actual unique key value when row is clicked
+- **Column Width**: Ensure Key Value column auto-adjusts to accommodate full unique key display
+- **Copy Functionality**: Ensure copy button copies the actual unique key, not the placeholder
 
 ### Remove
-- No components removed
+- Hardcoded placeholder "GAURAV-ABCDE" from key display logic
 
 ## Implementation Plan
 
-1. **Create ParticleBackground component** (or reuse existing if available):
-   - Canvas-based particle animation system
-   - White particles on purple gradient background
-   - Particles should be pre-animated (no initialization delay)
-   - Random initial positions and velocities for seamless loading
-   - Continuous smooth movement
+1. **Inspect Current Frontend Code**:
+   - Review AdminDashboard and ResellerDashboard components
+   - Identify how keys are fetched from backend
+   - Find where "GAURAV-ABCDE" placeholder is being rendered
+   - Check backend response structure for key data
 
-2. **Update Admin Dashboard (App.tsx)**:
-   - Import and integrate ParticleBackground component
-   - Apply purple-white gradient color scheme
-   - Ensure particles render behind dashboard content
-   - Maintain existing functionality (tabs, theme toggle, logout)
+2. **Fix Table Display**:
+   - Update table rendering to use actual `keyValue` field from backend response
+   - Remove any hardcoded placeholder text
+   - Ensure proper data binding from backend API
+   - Implement auto-width adjustment for Key Value column
 
-3. **Update Reseller Dashboard (ResellerDashboard.tsx)**:
-   - Import and integrate ParticleBackground component
-   - Apply purple-white gradient color scheme
-   - Ensure particles render behind dashboard content
-   - Maintain existing functionality (credit display, key creation)
+3. **Fix Popup Display**:
+   - Update KeyDetailsPopup component to display actual unique key
+   - Ensure copy button uses actual key value
+   - Verify all key information displays correctly
 
-4. **Theme consistency**:
-   - Keep welcome/login pages unchanged (red-black theme)
-   - Apply purple-white theme ONLY to admin and reseller dashboards
-   - Ensure theme toggle still functions properly
-
-5. **Validation**:
-   - Run typecheck to ensure no TypeScript errors
+4. **Frontend Validation**:
+   - Run typecheck to ensure no type errors
    - Run lint to ensure code quality
-   - Run build to verify production readiness
-   - Test that particles are immediately animated on page load
+   - Test key creation and verify unique keys display correctly
+   - Test both admin and reseller dashboards
+   - Verify copy functionality works with actual keys
 
 ## UX Notes
 
-- Particles should create a premium, gaming-focused atmosphere
-- Purple-white theme provides visual distinction from the red-black login theme
-- Pre-animated particles ensure smooth, professional loading experience
-- Background should enhance but not distract from dashboard functionality
-- Maintain readability of all text and UI elements against particle background
+- Users should see their actual unique generated keys immediately after creation
+- Each key in the table should display its unique value (e.g., `GAURAV-AB12E`, `GAURAV-9KL2M` for reseller keys)
+- Admin keys should display custom or auto-generated unique values
+- Copy button should copy the actual unique key value
+- No visual changes to layout or styling - only data display fix

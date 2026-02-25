@@ -91,8 +91,12 @@ export function CreateKeyDialog() {
       });
       toast.success("Key created successfully");
       setOpen(false);
-    } catch (error) {
-      toast.error("Failed to create key");
+    } catch (error: any) {
+      if (error.message?.includes("already exists")) {
+        toast.error("This key already exists. Please use a different key.");
+      } else {
+        toast.error(error.message || "Failed to create key");
+      }
       console.error(error);
     }
   };

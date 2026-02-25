@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Loader2, Wand2, Infinity, AlertCircle } from "lucide-react";
+import { Plus, Loader2, Infinity, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import type { InjectorId, ResellerId } from "../backend";
 
@@ -40,11 +40,10 @@ const DEVICE_LIMIT_PRESETS = [
   { label: "Unlimited", value: null },
 ];
 
-function generateRandomKey(): string {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < 24; i++) {
+function generateGauravKey(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let result = "GAURAV-";
+  for (let i = 0; i < 5; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
@@ -79,7 +78,7 @@ export function CreateKeyDialogReseller({
   const handleOpen = (isOpen: boolean) => {
     setOpen(isOpen);
     if (isOpen) {
-      setKeyValue(generateRandomKey());
+      setKeyValue(generateGauravKey());
       setSelectedDuration(BigInt(86400));
       setSelectedInjector(null);
       setMaxDevices(null);
@@ -112,6 +111,8 @@ export function CreateKeyDialogReseller({
     } catch (error: any) {
       if (error.message?.includes("Insufficient credits")) {
         toast.error("Insufficient credits. Please contact admin for more credits.");
+      } else if (error.message?.includes("already exists")) {
+        toast.error("This key already exists. Please use a different key.");
       } else {
         toast.error(error.message || "Failed to create key");
       }
@@ -149,26 +150,18 @@ export function CreateKeyDialogReseller({
             )}
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="keyValue">Key Value</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setKeyValue(generateRandomKey())}
-                  className="h-8 gap-2"
-                >
-                  <Wand2 className="h-3 w-3" />
-                  Regenerate
-                </Button>
-              </div>
+              <Label htmlFor="keyValue">Key Value</Label>
               <Input
                 id="keyValue"
                 value={keyValue}
                 onChange={(e) => setKeyValue(e.target.value)}
-                placeholder="Enter key value"
+                placeholder="Auto-generated key (GAURAV-XXXXX)"
                 className="font-mono"
+                disabled
               />
+              <p className="text-xs text-muted-foreground">
+                Keys are automatically generated with GAURAV- prefix
+              </p>
             </div>
 
             <div className="space-y-2">

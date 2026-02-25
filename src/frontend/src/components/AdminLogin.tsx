@@ -127,7 +127,7 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
                 required
                 autoComplete="username"
                 autoFocus
-                className="w-full bg-black/50 border-red-500/40 text-gray-100 placeholder:text-gray-400/50 focus:border-red-400 focus:ring-red-500/50"
+                className="w-full rounded-full py-3.5 text-base bg-black/50 border-red-500/40 text-gray-100 placeholder:text-gray-400/50 focus:border-red-400 focus:ring-red-500/50"
               />
             </div>
 
@@ -144,7 +144,7 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
                 placeholder="Enter password"
                 required
                 autoComplete="current-password"
-                className="w-full bg-black/50 border-red-500/40 text-gray-100 placeholder:text-gray-400/50 focus:border-red-400 focus:ring-red-500/50"
+                className="w-full rounded-full py-3.5 text-base bg-black/50 border-red-500/40 text-gray-100 placeholder:text-gray-400/50 focus:border-red-400 focus:ring-red-500/50"
               />
             </div>
 

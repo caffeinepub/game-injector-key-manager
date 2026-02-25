@@ -64,9 +64,11 @@ export interface backendInterface {
     authenticate(username: Username, password: Password): Promise<boolean>;
     authenticateReseller(username: Username, password: Password): Promise<ResellerId>;
     blockKey(keyId: KeyId): Promise<void>;
+    checkKeyExists(key: string): Promise<boolean>;
     createInjector(name: string, redirectUrl: string | null): Promise<void>;
     createReseller(username: Username, password: Password): Promise<void>;
     deleteInjector(injectorId: InjectorId): Promise<void>;
+    deleteKey(keyId: KeyId, resellerId: ResellerId | null): Promise<void>;
     deleteReseller(resellerId: ResellerId): Promise<void>;
     generateLoginRedirectUrl(injectorId: InjectorId): Promise<string>;
     getAccountByUsername(username: Username): Promise<AdminAccount | null>;
