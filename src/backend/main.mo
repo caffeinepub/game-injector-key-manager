@@ -156,7 +156,7 @@ actor {
     if (reseller.credits < amount) {
       Runtime.trap("INSUFFICIENT_CREDITS");
     };
-    resellers.add(resellerId, { reseller with credits = reseller.credits - amount });
+    resellers.add(resellerId, { reseller with credits = Nat.sub(reseller.credits, amount) });
   };
 
   public shared ({ caller }) func deleteReseller(resellerId : ResellerId) : async () {
@@ -281,7 +281,7 @@ actor {
     };
 
     keys.add(nextKeyId, newKey);
-    resellers.add(resellerId, { reseller with credits = reseller.credits - keyCreditCost });
+    resellers.add(resellerId, { reseller with credits = Nat.sub(reseller.credits, keyCreditCost) });
     nextKeyId += 1;
   };
 
@@ -485,6 +485,7 @@ actor {
     panelSettings;
   };
 
+  // OLD verifyLogin -> kept for backwards compatibility
   public query ({ caller }) func verifyLogin(key : Text, deviceId : Text) : async {
     valid : Bool;
     message : Text;
@@ -565,7 +566,154 @@ actor {
     };
   };
 
-  // ------ DELETE KEY -----------
+  /// -------  NEW verifyLogin replaces verifyLicense function ------- ///
+  public query ({ caller }) func verifyLoginWithInjector(key : Text, deviceId : Text, injectorIdParam : Text) : async {
+    valid : Bool;
+    message : Text;
+    status : Text;
+  } {
+    let keyEntry = keys.toArray().find(
+      func((_, entry)) {
+        Text.equal(entry.key, key);
+      }
+    );
+
+    switch (keyEntry) {
+      case (null) {
+        { valid = false; message = "Key not found"; status = "error" };
+      };
+      case (?(_, loginKey)) {
+        // Validate injector ID
+        switch (loginKey.injector) {
+          case (?assignedInjectorId) {
+            if (injectorIdParam != "0" and not Text.equal(assignedInjectorId.toText(), injectorIdParam)) {
+              let injectorName = switch (injectors.get(assignedInjectorId)) {
+                case (?injector) { injector.name };
+                case (null) { "Unknown Injector" };
+              };
+              return {
+                valid = false;
+                message = "This key is not valid for " # injectorName;
+                status = "error";
+              };
+            };
+          };
+          case (null) {
+            if (injectorIdParam != "0" and injectorIdParam != "") {
+              return {
+                valid = false;
+                message = "This key is not valid for the specified injector";
+                status = "error";
+              };
+            };
+          };
+        };
+
+        // Existing validations
+        if (loginKey.blocked) {
+          return { valid = false; message = "Key is blocked"; status = "error" };
+        };
+
+        switch (loginKey.expires) {
+          case (null) {};
+          case (?expires) {
+            if (Time.now() >= expires) {
+              return {
+                valid = false;
+                message = "Key has expired";
+                status = "error";
+              };
+            };
+          };
+        };
+
+        switch (loginKey.maxDevices) {
+          case (null) {};
+          case (?maxDevices) {
+            if (loginKey.deviceCount >= maxDevices) {
+              return {
+                valid = false;
+                message = "Device count limit reached";
+                status = "error";
+              };
+            };
+
+            let deviceUsed = switch (deviceRegistries.get(loginKey.id)) {
+              case (null) { false };
+              case (?devicesList) {
+                let deviceArray = devicesList.toArray();
+                let found = deviceArray.find(
+                  func(device) { Text.equal(device.deviceId, deviceId) }
+                );
+                switch (found) {
+                  case (null) { false };
+                  case (?_) { true };
+                };
+              };
+            };
+
+            if (deviceUsed) {
+              return {
+                valid = false;
+                message = "Device already used";
+                status = "error";
+              };
+            };
+          };
+        };
+
+        let newDeviceList = switch (deviceRegistries.get(loginKey.id)) {
+          case (null) { List.empty<DeviceRegistry>() };
+          case (?existing) { existing };
+        };
+        newDeviceList.add({ deviceId; used = Time.now() });
+        deviceRegistries.add(loginKey.id, newDeviceList);
+
+        { valid = true; message = "Key is valid"; status = "success" };
+      };
+    };
+  };
+
+  // New getKeyCountByInjector function
+  public query ({ caller }) func getKeyCountByInjector() : async [(InjectorId, Nat)] {
+    let counts = injectors.map<InjectorId, Injector, (InjectorId, Nat)>(
+      func(id, _) { (id, 0) }
+    );
+
+    for (key in keys.values()) {
+      switch (key.injector) {
+        case (?injectorId) {
+          switch (counts.get(injectorId)) {
+            case (?countTuple) {
+              let currentCount = countTuple.1;
+              counts.add(injectorId, (injectorId, currentCount + 1));
+            };
+            case (null) {};
+          };
+        };
+        case (null) {};
+      };
+    };
+
+    // Filter counts to only include injectors with at least one key
+    let entries = counts.entries();
+    let filteredEntries = entries.filter(func((_, pair)) { pair.1 > 0 });
+    filteredEntries.toArray().map(func((_, pair)) { pair });
+  };
+
+  // New getKeysByInjector function
+  public query ({ caller }) func getKeysByInjector(injectorId : InjectorId) : async [LoginKey] {
+    let filtered = keys.values().toList<LoginKey>().filter(
+      func(key) {
+        switch (key.injector) {
+          case (null) { false };
+          case (?id) { id == injectorId };
+        };
+      }
+    );
+    filtered.toArray();
+  };
+
   public shared ({ caller }) func deleteKey(keyId : KeyId, resellerId : ?ResellerId) : async () {
     switch (keys.get(keyId)) {
       case (null) { Runtime.trap("KEY_NOT_FOUND") };

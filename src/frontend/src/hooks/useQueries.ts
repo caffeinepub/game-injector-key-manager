@@ -391,6 +391,30 @@ export function useGetKeysByReseller(resellerId: ResellerId) {
   });
 }
 
+export function useGetKeyCountByInjector() {
+  const { actor, isFetching } = useActor();
+  return useQuery<Array<[InjectorId, bigint]>>({
+    queryKey: ["keyCountByInjector"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getKeyCountByInjector();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetKeysByInjector(injectorId: InjectorId) {
+  const { actor, isFetching } = useActor();
+  return useQuery<LoginKey[]>({
+    queryKey: ["keys", "injector", injectorId.toString()],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getKeysByInjector(injectorId);
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
 export function useResellerCreateKey() {
   const { actor } = useActor();
   const queryClient = useQueryClient();

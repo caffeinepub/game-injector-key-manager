@@ -73,7 +73,7 @@ export function KeysTableReseller({ resellerId }: KeysTableResellerProps) {
 
   // Helper function to get injector name by ID
   const getInjectorName = (injectorId?: bigint): string => {
-    if (!injectorId) return "General";
+    if (!injectorId) return "Unassigned";
     const injector = injectors.find((inj) => inj.id === injectorId);
     return injector ? injector.name : "Unknown";
   };

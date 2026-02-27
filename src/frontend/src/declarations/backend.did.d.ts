@@ -79,7 +79,9 @@ export interface _SERVICE {
   'getDevicesForKey' : ActorMethod<[KeyId], Array<[string, Time]>>,
   'getInjectorById' : ActorMethod<[InjectorId], Injector>,
   'getKeyById' : ActorMethod<[KeyId], LoginKey>,
+  'getKeyCountByInjector' : ActorMethod<[], Array<[InjectorId, bigint]>>,
   'getKeyCreditCost' : ActorMethod<[], bigint>,
+  'getKeysByInjector' : ActorMethod<[InjectorId], Array<LoginKey>>,
   'getKeysByReseller' : ActorMethod<[ResellerId], Array<LoginKey>>,
   'getPanelSettings' : ActorMethod<[], PanelSettings>,
   'isValidKey' : ActorMethod<[KeyId], boolean>,
@@ -97,6 +99,13 @@ export interface _SERVICE {
   'validateKey' : ActorMethod<[KeyId, string], boolean>,
   'verifyLogin' : ActorMethod<
     [string, string],
+    { 'status' : string, 'valid' : boolean, 'message' : string }
+  >,
+  /**
+   * / -------  NEW verifyLogin replaces verifyLicense function ------- ///
+   */
+  'verifyLoginWithInjector' : ActorMethod<
+    [string, string, string],
     { 'status' : string, 'valid' : boolean, 'message' : string }
   >,
 }

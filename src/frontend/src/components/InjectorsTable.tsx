@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   useGetAllInjectors,
   useDeleteInjector,
-  useGenerateLoginRedirectUrl,
 } from "@/hooks/useQueries";
 import {
   Card,
@@ -30,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Copy, Trash2, Loader2, ExternalLink } from "lucide-react";
+import { Copy, Trash2, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
 import type { Injector, InjectorId } from "../backend";
 
@@ -49,9 +48,9 @@ function formatTimestamp(timestamp?: bigint): string {
   });
 }
 
-function copyToClipboard(text: string) {
+function copyToClipboard(text: string, label: string = "Copied") {
   navigator.clipboard.writeText(text);
-  toast.success("Login URL copied to clipboard");
+  toast.success(`${label} copied to clipboard`);
 }
 
 interface ConfirmDialog {
@@ -59,39 +58,18 @@ interface ConfirmDialog {
   injector: Injector | null;
 }
 
-export function InjectorsTable() {
+interface InjectorsTableProps {
+  keyCounts?: Map<string, number>;
+  onExportKeys?: (injectorId: InjectorId, injectorName: string) => void;
+}
+
+export function InjectorsTable({ keyCounts, onExportKeys }: InjectorsTableProps) {
   const { data: injectors = [], isLoading } = useGetAllInjectors();
   const deleteInjector = useDeleteInjector();
-  const generateUrl = useGenerateLoginRedirectUrl();
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog>({
     open: false,
     injector: null,
   });
-  const [loginUrls, setLoginUrls] = useState<Map<string, string>>(new Map());
-
-  // Generate login URLs for all injectors when they load
-  useEffect(() => {
-    if (injectors.length > 0) {
-      const generateUrls = async () => {
-        const urlMap = new Map<string, string>();
-        await Promise.all(
-          injectors.map(async (injector) => {
-            try {
-              const url = await generateUrl.mutateAsync(injector.id);
-              urlMap.set(injector.id.toString(), url);
-            } catch (error) {
-              console.error(
-                `Failed to generate URL for injector ${injector.id}`,
-                error
-              );
-            }
-          })
-        );
-        setLoginUrls(urlMap);
-      };
-      generateUrls();
-    }
-  }, [injectors]);
 
   const handleDelete = async () => {
     if (!confirmDialog.injector) return;
@@ -112,7 +90,7 @@ export function InjectorsTable() {
         <CardHeader>
           <CardTitle>Game Injectors</CardTitle>
           <CardDescription>
-            Manage registered game injectors and their login URLs
+            Manage registered game injectors and their key assignments
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -130,7 +108,7 @@ export function InjectorsTable() {
         <CardHeader>
           <CardTitle>Game Injectors</CardTitle>
           <CardDescription>
-            Manage registered game injectors and their login URLs
+            Manage registered game injectors and their key assignments
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -144,76 +122,73 @@ export function InjectorsTable() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Redirect URL</TableHead>
+                    <TableHead>Injector ID</TableHead>
+                    <TableHead>Total Keys</TableHead>
                     <TableHead>Created</TableHead>
-                    <TableHead>Generated Login URL</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {injectors.map((injector) => {
-                    const loginUrl = loginUrls.get(injector.id.toString());
+                    const keyCount = keyCounts?.get(injector.id.toString()) ?? 0;
                     return (
                       <TableRow key={injector.id.toString()}>
                         <TableCell className="font-medium">
                           {injector.name}
                         </TableCell>
                         <TableCell>
-                          {injector.redirectUrl ? (
-                            <a
-                              href={injector.redirectUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline flex items-center gap-1 text-sm"
+                          <div className="flex items-center gap-2">
+                            <code className="px-2 py-1 bg-muted font-mono text-xs">
+                              {injector.id.toString()}
+                            </code>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                copyToClipboard(injector.id.toString(), "Injector ID")
+                              }
+                              className="h-7 w-7 p-0 shrink-0"
                             >
-                              {injector.redirectUrl.length > 40
-                                ? `${injector.redirectUrl.substring(0, 40)}...`
-                                : injector.redirectUrl}
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">
-                              Not set
-                            </span>
-                          )}
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-mono font-medium">{keyCount}</span>
                         </TableCell>
                         <TableCell className="text-sm">
                           {formatTimestamp(injector.created)}
                         </TableCell>
-                        <TableCell>
-                          {loginUrl ? (
-                            <div className="flex items-center gap-2">
-                              <code className="px-2 py-1 bg-muted font-mono text-xs max-w-xs truncate">
-                                {loginUrl}
-                              </code>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => copyToClipboard(loginUrl)}
-                                className="h-7 w-7 p-0 shrink-0"
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                          )}
-                        </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() =>
-                              setConfirmDialog({
-                                open: true,
-                                injector,
-                              })
-                            }
-                            className="gap-2"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                            Delete
-                          </Button>
+                          <div className="flex items-center justify-end gap-2">
+                            {onExportKeys && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  onExportKeys(injector.id, injector.name)
+                                }
+                                className="gap-2"
+                              >
+                                <Download className="h-3 w-3" />
+                                Export
+                              </Button>
+                            )}
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() =>
+                                setConfirmDialog({
+                                  open: true,
+                                  injector,
+                                })
+                              }
+                              className="gap-2"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Delete
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -235,8 +210,8 @@ export function InjectorsTable() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Injector?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete "{confirmDialog.injector?.name}" and
-              invalidate its login URL. This action cannot be undone.
+              This will permanently delete "{confirmDialog.injector?.name}".
+              All keys assigned to this injector will become unassigned. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

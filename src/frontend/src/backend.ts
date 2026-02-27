@@ -161,7 +161,9 @@ export interface backendInterface {
     getDevicesForKey(keyId: KeyId): Promise<Array<[string, Time]>>;
     getInjectorById(injectorId: InjectorId): Promise<Injector>;
     getKeyById(keyId: KeyId): Promise<LoginKey>;
+    getKeyCountByInjector(): Promise<Array<[InjectorId, bigint]>>;
     getKeyCreditCost(): Promise<bigint>;
+    getKeysByInjector(injectorId: InjectorId): Promise<Array<LoginKey>>;
     getKeysByReseller(resellerId: ResellerId): Promise<Array<LoginKey>>;
     getPanelSettings(): Promise<PanelSettings>;
     isValidKey(keyId: KeyId): Promise<boolean>;
@@ -175,6 +177,14 @@ export interface backendInterface {
     updatePanelSettings(newSettings: PanelSettings): Promise<void>;
     validateKey(keyId: KeyId, deviceId: string): Promise<boolean>;
     verifyLogin(key: string, deviceId: string): Promise<{
+        status: string;
+        valid: boolean;
+        message: string;
+    }>;
+    /**
+     * / -------  NEW verifyLogin replaces verifyLicense function ------- ///
+     */
+    verifyLoginWithInjector(key: string, deviceId: string, injectorIdParam: string): Promise<{
         status: string;
         valid: boolean;
         message: string;
@@ -463,6 +473,20 @@ export class Backend implements backendInterface {
             return from_candid_LoginKey_n15(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getKeyCountByInjector(): Promise<Array<[InjectorId, bigint]>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getKeyCountByInjector();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getKeyCountByInjector();
+            return result;
+        }
+    }
     async getKeyCreditCost(): Promise<bigint> {
         if (this.processError) {
             try {
@@ -475,6 +499,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getKeyCreditCost();
             return result;
+        }
+    }
+    async getKeysByInjector(arg0: InjectorId): Promise<Array<LoginKey>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getKeysByInjector(arg0);
+                return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getKeysByInjector(arg0);
+            return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
         }
     }
     async getKeysByReseller(arg0: ResellerId): Promise<Array<LoginKey>> {
@@ -660,6 +698,24 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.verifyLogin(arg0, arg1);
+            return result;
+        }
+    }
+    async verifyLoginWithInjector(arg0: string, arg1: string, arg2: string): Promise<{
+        status: string;
+        valid: boolean;
+        message: string;
+    }> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.verifyLoginWithInjector(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.verifyLoginWithInjector(arg0, arg1, arg2);
             return result;
         }
     }

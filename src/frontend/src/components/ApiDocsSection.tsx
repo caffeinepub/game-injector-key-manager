@@ -11,7 +11,7 @@ export function ApiDocsSection() {
 
   // Get the canister ID from the current origin
   const canisterId = window.location.hostname.split('.')[0];
-  const apiEndpoint = `https://${canisterId}.icp0.io/api/injector-login`;
+  const apiEndpoint = `https://${canisterId}.icp0.io/api/verifyLoginWithInjector`;
 
   const copyToClipboard = async (text: string, index: number) => {
     try {
@@ -30,14 +30,16 @@ import okhttp3.*;
 
 public class InjectorLogin {
     private static final String API_URL = "${apiEndpoint}";
+    // Use the numeric Injector ID from the Injectors tab
+    private static final String INJECTOR_ID = "1"; // Replace with your injector's ID
     private final OkHttpClient client = new OkHttpClient();
     
-    public void verifyKey(String key, String deviceId, String injectorId) {
+    public void verifyKey(String key, String deviceId) {
         JSONObject json = new JSONObject();
         try {
             json.put("key", key);
             json.put("deviceId", deviceId);
-            json.put("injectorId", injectorId);
+            json.put("injectorId", INJECTOR_ID); // Must match the assigned injector
             
             RequestBody body = RequestBody.create(
                 json.toString(),
@@ -89,12 +91,14 @@ import okhttp3.RequestBody.Companion.toRequestBody
 class InjectorLogin {
     private val client = OkHttpClient()
     private val apiUrl = "${apiEndpoint}"
+    // Use the numeric Injector ID from the Injectors tab
+    private val injectorId = "1" // Replace with your injector's ID
     
-    fun verifyKey(key: String, deviceId: String, injectorId: String) {
+    fun verifyKey(key: String, deviceId: String) {
         val json = JSONObject().apply {
             put("key", key)
             put("deviceId", deviceId)
-            put("injectorId", injectorId)
+            put("injectorId", injectorId) // Must match the assigned injector
         }
         
         val body = json.toString()
@@ -134,15 +138,15 @@ class InjectorLogin {
   const curlExample = `curl -X POST ${apiEndpoint} \\
   -H "Content-Type: application/json" \\
   -d '{
-    "key": "ABC123XYZ789",
+    "key": "GAURAV-AB12E",
     "deviceId": "device-unique-id-123",
-    "injectorId": "your-injector-id"
+    "injectorId": "1"
   }'`;
 
   const requestExample = `{
-  "key": "ABC123XYZ789",
+  "key": "GAURAV-AB12E",
   "deviceId": "device-unique-id-123",
-  "injectorId": "your-injector-id"
+  "injectorId": "1"
 }`;
 
   const successResponse = `{
@@ -162,7 +166,7 @@ class InjectorLogin {
     { error: "Key has expired", description: "The key's duration has passed" },
     { error: "Key is blocked", description: "Admin has blocked this key" },
     { error: "Device limit reached", description: "Maximum number of devices have used this key" },
-    { error: "Invalid injector", description: "Key is not assigned to this injector ID" },
+    { error: "This key is not valid for [InjectorName]", description: "The key is assigned to a specific injector and cannot be used with a different one" },
     { error: "Missing required fields", description: "Request is missing key, deviceId, or injectorId" },
   ];
 
@@ -248,7 +252,7 @@ class InjectorLogin {
             <div className="border-l-2 border-primary pl-4">
               <h4 className="font-semibold text-sm mb-1">injectorId</h4>
               <p className="text-sm text-muted-foreground">
-                Your injector's unique ID from the Injectors tab (required)
+                Your injector's numeric ID from the Injectors tab (required). Keys must be assigned to this injector — wrong injector ID will be rejected.
               </p>
             </div>
           </div>
@@ -321,8 +325,8 @@ class InjectorLogin {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {errorMessages.map((item, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+            {errorMessages.map((item) => (
+              <div key={item.error} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                 <Badge variant="outline" className="mt-0.5 font-mono text-xs">
                   {item.error}
                 </Badge>

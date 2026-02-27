@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Loader2, Wand2, Infinity } from "lucide-react";
+import { Plus, Loader2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import type { InjectorId } from "../backend";
 
@@ -79,6 +79,11 @@ export function CreateKeyDialog() {
 
     if (!keyValue.trim()) {
       toast.error("Please enter a key value");
+      return;
+    }
+
+    if (selectedInjector === null) {
+      toast.error("Please select an injector");
       return;
     }
 
@@ -143,23 +148,26 @@ export function CreateKeyDialog() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="injector">Injector (Optional)</Label>
+              <Label htmlFor="injector">
+                Injector (Required) <span className="text-destructive">*</span>
+              </Label>
               <Select
-                value={selectedInjector?.toString() || "general"}
+                value={selectedInjector?.toString() ?? ""}
                 onValueChange={(value) =>
-                  setSelectedInjector(
-                    value === "general" ? null : BigInt(value)
-                  )
+                  setSelectedInjector(value ? BigInt(value) : null)
                 }
               >
                 <SelectTrigger id="injector">
                   <SelectValue placeholder="Select an injector" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="general">General / No Injector</SelectItem>
                   {injectorsLoading ? (
                     <SelectItem value="loading" disabled>
                       Loading injectors...
+                    </SelectItem>
+                  ) : injectors.length === 0 ? (
+                    <SelectItem value="none" disabled>
+                      No injectors available - add one first
                     </SelectItem>
                   ) : (
                     injectors.map((injector) => (
@@ -174,7 +182,7 @@ export function CreateKeyDialog() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Keys without an injector can be used for any injector
+                Keys are bound to the selected injector and will only work with it
               </p>
             </div>
 
@@ -213,7 +221,7 @@ export function CreateKeyDialog() {
                     className="h-auto py-3 gap-1"
                   >
                     {preset.value === null && (
-                      <Infinity className="h-3 w-3" />
+                      <span className="text-xs">∞</span>
                     )}
                     {preset.label}
                   </Button>

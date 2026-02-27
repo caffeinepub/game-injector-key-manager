@@ -79,7 +79,9 @@ export interface backendInterface {
     getDevicesForKey(keyId: KeyId): Promise<Array<[string, Time]>>;
     getInjectorById(injectorId: InjectorId): Promise<Injector>;
     getKeyById(keyId: KeyId): Promise<LoginKey>;
+    getKeyCountByInjector(): Promise<Array<[InjectorId, bigint]>>;
     getKeyCreditCost(): Promise<bigint>;
+    getKeysByInjector(injectorId: InjectorId): Promise<Array<LoginKey>>;
     getKeysByReseller(resellerId: ResellerId): Promise<Array<LoginKey>>;
     getPanelSettings(): Promise<PanelSettings>;
     isValidKey(keyId: KeyId): Promise<boolean>;
@@ -93,6 +95,14 @@ export interface backendInterface {
     updatePanelSettings(newSettings: PanelSettings): Promise<void>;
     validateKey(keyId: KeyId, deviceId: string): Promise<boolean>;
     verifyLogin(key: string, deviceId: string): Promise<{
+        status: string;
+        valid: boolean;
+        message: string;
+    }>;
+    /**
+     * / -------  NEW verifyLogin replaces verifyLicense function ------- ///
+     */
+    verifyLoginWithInjector(key: string, deviceId: string, injectorIdParam: string): Promise<{
         status: string;
         valid: boolean;
         message: string;
