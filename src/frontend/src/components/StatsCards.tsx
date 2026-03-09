@@ -1,6 +1,6 @@
-import { useGetAllKeys } from "@/hooks/useQueries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Key, Lock, Unlock, Smartphone } from "lucide-react";
+import { useGetAllKeys } from "@/hooks/useQueries";
+import { Key, Lock, Smartphone, Unlock } from "lucide-react";
 
 export function StatsCards() {
   const { data: keys = [], isLoading } = useGetAllKeys();
@@ -9,7 +9,7 @@ export function StatsCards() {
   const activeKeys = keys.filter((key) => !key.blocked).length;
   const blockedKeys = keys.filter((key) => key.blocked).length;
   const keysAtCapacity = keys.filter(
-    (key) => key.maxDevices && key.deviceCount >= key.maxDevices
+    (key) => key.maxDevices && key.deviceCount >= key.maxDevices,
   ).length;
 
   if (isLoading) {

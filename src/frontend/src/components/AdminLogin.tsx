@@ -1,9 +1,9 @@
-import { useState, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Skull, Lock, User, AlertCircle, ArrowLeft } from "lucide-react";
 import { useBackendAuthenticate } from "@/hooks/useQueries";
+import { AlertCircle, ArrowLeft, Lock, Skull, User } from "lucide-react";
+import { type FormEvent, useState } from "react";
 import { MovingParticles } from "./MovingParticles";
 
 const ADMIN_USERNAME = "Gaurav";
@@ -38,13 +38,13 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
 
       // Then authenticate with backend
       await backendAuth.mutateAsync({ username, password });
-      
+
       // Store credentials for re-authentication if needed
       localStorage.setItem(ADMIN_SESSION_KEY, "true");
       localStorage.setItem("adminUsername", username);
       localStorage.setItem("adminPassword", password);
       localStorage.setItem("userRole", "admin");
-      
+
       onAuthenticated();
     } catch (err) {
       console.error("Backend authentication failed:", err);
@@ -59,15 +59,15 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Black gradient background with red accents */}
       <div className="absolute inset-0 bg-gradient-to-br from-black via-red-950 to-black" />
-      
+
       {/* Animated pulsing radial gradient */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(239,68,68,0.15),transparent_50%)]">
         <div className="absolute inset-0 animate-pulse-slow bg-[radial-gradient(circle_at_30%_70%,rgba(220,38,38,0.12),transparent_60%)]" />
       </div>
-      
+
       {/* Moving white particles */}
       <MovingParticles />
-      
+
       {/* Moving diagonal lines effect */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-400 to-transparent animate-slide-down" />
@@ -88,7 +88,7 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
               Back
             </Button>
           )}
-          
+
           {/* Glowing skull icon */}
           <div className="flex justify-center">
             <div className="relative">
@@ -98,10 +98,10 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
               </div>
             </div>
           </div>
-          
+
           {/* Heading with custom Orbitron font */}
           <div className="space-y-2 text-center">
-            <h1 
+            <h1
               className="text-3xl font-bold bg-gradient-to-r from-white via-red-200 to-white bg-clip-text text-transparent"
               style={{ fontFamily: "'Orbitron', sans-serif" }}
             >
@@ -114,7 +114,10 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="flex items-center gap-2 text-gray-200">
+              <Label
+                htmlFor="username"
+                className="flex items-center gap-2 text-gray-200"
+              >
                 <User className="h-4 w-4" />
                 Username
               </Label>
@@ -132,7 +135,10 @@ export function AdminLogin({ onAuthenticated, onBack }: AdminLoginProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2 text-gray-200">
+              <Label
+                htmlFor="password"
+                className="flex items-center gap-2 text-gray-200"
+              >
                 <Lock className="h-4 w-4" />
                 Password
               </Label>
@@ -196,7 +202,7 @@ export function useAdminAuth() {
   const reAuthenticate = async () => {
     const storedUsername = localStorage.getItem("adminUsername");
     const storedPassword = localStorage.getItem("adminPassword");
-    
+
     if (storedUsername && storedPassword) {
       try {
         await backendAuth.mutateAsync({

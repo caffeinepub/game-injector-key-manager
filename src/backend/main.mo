@@ -567,7 +567,7 @@ actor {
   };
 
   /// -------  NEW verifyLogin replaces verifyLicense function ------- ///
-  public query ({ caller }) func verifyLoginWithInjector(key : Text, deviceId : Text, injectorIdParam : Text) : async {
+  public query ({ caller }) func verifyKey(key : Text, deviceId : Text, injectorIdParam : Text) : async {
     valid : Bool;
     message : Text;
     status : Text;

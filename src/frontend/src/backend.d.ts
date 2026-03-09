@@ -102,7 +102,7 @@ export interface backendInterface {
     /**
      * / -------  NEW verifyLogin replaces verifyLicense function ------- ///
      */
-    verifyLoginWithInjector(key: string, deviceId: string, injectorIdParam: string): Promise<{
+    verifyKey(key: string, deviceId: string, injectorIdParam: string): Promise<{
         status: string;
         valid: boolean;
         message: string;

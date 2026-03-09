@@ -1,8 +1,14 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Copy, Check, Globe, Code2, FileJson, Terminal } from "lucide-react";
+import { Check, Code2, Copy, FileJson, Globe, Terminal } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -10,8 +16,8 @@ export function ApiDocsSection() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   // Get the canister ID from the current origin
-  const canisterId = window.location.hostname.split('.')[0];
-  const apiEndpoint = `https://${canisterId}.icp0.io/api/verifyLoginWithInjector`;
+  const canisterId = window.location.hostname.split(".")[0];
+  const apiEndpoint = `https://${canisterId}.icp0.io/api/verifyKey`;
 
   const copyToClipboard = async (text: string, index: number) => {
     try {
@@ -19,7 +25,7 @@ export function ApiDocsSection() {
       setCopiedIndex(index);
       toast.success("Copied to clipboard!");
       setTimeout(() => setCopiedIndex(null), 2000);
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to copy");
     }
   };
@@ -162,12 +168,25 @@ class InjectorLogin {
 }`;
 
   const errorMessages = [
-    { error: "Key not found", description: "The provided key doesn't exist in the system" },
+    {
+      error: "Key not found",
+      description: "The provided key doesn't exist in the system",
+    },
     { error: "Key has expired", description: "The key's duration has passed" },
     { error: "Key is blocked", description: "Admin has blocked this key" },
-    { error: "Device limit reached", description: "Maximum number of devices have used this key" },
-    { error: "This key is not valid for [InjectorName]", description: "The key is assigned to a specific injector and cannot be used with a different one" },
-    { error: "Missing required fields", description: "Request is missing key, deviceId, or injectorId" },
+    {
+      error: "Device limit reached",
+      description: "Maximum number of devices have used this key",
+    },
+    {
+      error: "This key is not valid for [InjectorName]",
+      description:
+        "The key is assigned to a specific injector and cannot be used with a different one",
+    },
+    {
+      error: "Missing required fields",
+      description: "Request is missing key, deviceId, or injectorId",
+    },
   ];
 
   return (
@@ -192,7 +211,9 @@ class InjectorLogin {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="font-mono">POST</Badge>
+            <Badge variant="secondary" className="font-mono">
+              POST
+            </Badge>
             <code className="flex-1 bg-muted px-3 py-2 rounded-md text-sm font-mono break-all">
               {apiEndpoint}
             </code>
@@ -201,7 +222,11 @@ class InjectorLogin {
               variant="outline"
               onClick={() => copyToClipboard(apiEndpoint, 0)}
             >
-              {copiedIndex === 0 ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copiedIndex === 0 ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
@@ -232,7 +257,11 @@ class InjectorLogin {
               className="absolute top-2 right-2"
               onClick={() => copyToClipboard(requestExample, 1)}
             >
-              {copiedIndex === 1 ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copiedIndex === 1 ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
             </Button>
           </div>
 
@@ -246,13 +275,16 @@ class InjectorLogin {
             <div className="border-l-2 border-primary pl-4">
               <h4 className="font-semibold text-sm mb-1">deviceId</h4>
               <p className="text-sm text-muted-foreground">
-                Unique device identifier - use Android ID or custom UUID (required)
+                Unique device identifier - use Android ID or custom UUID
+                (required)
               </p>
             </div>
             <div className="border-l-2 border-primary pl-4">
               <h4 className="font-semibold text-sm mb-1">injectorId</h4>
               <p className="text-sm text-muted-foreground">
-                Your injector's numeric ID from the Injectors tab (required). Keys must be assigned to this injector — wrong injector ID will be rejected.
+                Your injector's numeric ID from the Injectors tab (required).
+                Keys must be assigned to this injector — wrong injector ID will
+                be rejected.
               </p>
             </div>
           </div>
@@ -286,7 +318,11 @@ class InjectorLogin {
                 className="absolute top-2 right-2"
                 onClick={() => copyToClipboard(successResponse, 2)}
               >
-                {copiedIndex === 2 ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copiedIndex === 2 ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
@@ -308,7 +344,11 @@ class InjectorLogin {
                 className="absolute top-2 right-2"
                 onClick={() => copyToClipboard(errorResponse, 3)}
               >
-                {copiedIndex === 3 ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copiedIndex === 3 ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
@@ -326,7 +366,10 @@ class InjectorLogin {
         <CardContent>
           <div className="space-y-2">
             {errorMessages.map((item) => (
-              <div key={item.error} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+              <div
+                key={item.error}
+                className="flex items-start gap-3 p-3 rounded-lg bg-muted/50"
+              >
                 <Badge variant="outline" className="mt-0.5 font-mono text-xs">
                   {item.error}
                 </Badge>
@@ -361,7 +404,11 @@ class InjectorLogin {
               className="absolute top-2 right-2"
               onClick={() => copyToClipboard(javaExample, 4)}
             >
-              {copiedIndex === 4 ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copiedIndex === 4 ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </CardContent>
@@ -389,7 +436,11 @@ class InjectorLogin {
               className="absolute top-2 right-2"
               onClick={() => copyToClipboard(kotlinExample, 5)}
             >
-              {copiedIndex === 5 ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copiedIndex === 5 ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </CardContent>
@@ -417,7 +468,11 @@ class InjectorLogin {
               className="absolute top-2 right-2"
               onClick={() => copyToClipboard(curlExample, 6)}
             >
-              {copiedIndex === 6 ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copiedIndex === 6 ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </CardContent>
@@ -429,7 +484,10 @@ class InjectorLogin {
           <CardTitle className="text-base">Required Dependencies</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <p>Add these to your Android project's <code className="bg-muted px-2 py-0.5 rounded">build.gradle</code>:</p>
+          <p>
+            Add these to your Android project's{" "}
+            <code className="bg-muted px-2 py-0.5 rounded">build.gradle</code>:
+          </p>
           <pre className="bg-muted p-3 rounded-lg overflow-x-auto text-xs">
             <code>{`dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.11.0'

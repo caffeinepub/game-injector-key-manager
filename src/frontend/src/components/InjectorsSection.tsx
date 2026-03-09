@@ -1,9 +1,9 @@
+import { useGetAllKeys } from "@/hooks/useQueries";
 import { useMemo } from "react";
+import { toast } from "sonner";
+import type { InjectorId } from "../backend";
 import { AddInjectorDialog } from "./AddInjectorDialog";
 import { InjectorsTable } from "./InjectorsTable";
-import { useGetAllKeys } from "@/hooks/useQueries";
-import type { InjectorId } from "../backend";
-import { toast } from "sonner";
 
 function formatTimestampCSV(timestamp?: bigint): string {
   if (!timestamp || timestamp === BigInt(0)) {
@@ -36,7 +36,9 @@ export function InjectorsSection() {
 
   const handleExportKeys = (injectorId: InjectorId, injectorName: string) => {
     const injectorKeys = allKeys.filter(
-      (k) => k.injector !== undefined && k.injector.toString() === injectorId.toString()
+      (k) =>
+        k.injector !== undefined &&
+        k.injector.toString() === injectorId.toString(),
     );
 
     if (injectorKeys.length === 0) {
@@ -44,7 +46,15 @@ export function InjectorsSection() {
       return;
     }
 
-    const headers = ["Key", "Injector", "Created", "Expires", "Status", "Max Devices", "Devices Used"];
+    const headers = [
+      "Key",
+      "Injector",
+      "Created",
+      "Expires",
+      "Status",
+      "Max Devices",
+      "Devices Used",
+    ];
     const rows = injectorKeys.map((k) => [
       k.key,
       injectorName,

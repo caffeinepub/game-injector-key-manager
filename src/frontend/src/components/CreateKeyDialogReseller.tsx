@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useResellerCreateKey, useGetAllInjectors } from "@/hooks/useQueries";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +8,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,7 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Loader2, AlertCircle } from "lucide-react";
+import { useGetAllInjectors, useResellerCreateKey } from "@/hooks/useQueries";
+import { AlertCircle, Loader2, Plus } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import type { InjectorId, ResellerId } from "../backend";
 
@@ -63,10 +63,10 @@ export function CreateKeyDialogReseller({
   const [open, setOpen] = useState(false);
   const [keyValue, setKeyValue] = useState("");
   const [selectedDuration, setSelectedDuration] = useState<bigint>(
-    BigInt(86400)
+    BigInt(86400),
   );
   const [selectedInjector, setSelectedInjector] = useState<InjectorId | null>(
-    null
+    null,
   );
   const [maxDevices, setMaxDevices] = useState<number | null>(null);
   const createKey = useResellerCreateKey();
@@ -94,7 +94,9 @@ export function CreateKeyDialogReseller({
     }
 
     if (!canAfford) {
-      toast.error(`Insufficient credits. You need ${creditCost.toString()} credits.`);
+      toast.error(
+        `Insufficient credits. You need ${creditCost.toString()} credits.`,
+      );
       return;
     }
 
@@ -111,11 +113,15 @@ export function CreateKeyDialogReseller({
         injectorId: selectedInjector,
         maxDevices: maxDevices !== null ? BigInt(maxDevices) : undefined,
       });
-      toast.success(`Key created successfully. ${creditCost.toString()} credits deducted.`);
+      toast.success(
+        `Key created successfully. ${creditCost.toString()} credits deducted.`,
+      );
       setOpen(false);
     } catch (error: any) {
       if (error.message?.includes("Insufficient credits")) {
-        toast.error("Insufficient credits. Please contact admin for more credits.");
+        toast.error(
+          "Insufficient credits. Please contact admin for more credits.",
+        );
       } else if (error.message?.includes("already exists")) {
         toast.error("This key already exists. Please use a different key.");
       } else {
@@ -138,7 +144,8 @@ export function CreateKeyDialogReseller({
           <DialogHeader>
             <DialogTitle>Create New Login Key</DialogTitle>
             <DialogDescription>
-              Generate a new authentication key. This will cost {creditCost.toString()} credits.
+              Generate a new authentication key. This will cost{" "}
+              {creditCost.toString()} credits.
             </DialogDescription>
           </DialogHeader>
 
@@ -148,8 +155,8 @@ export function CreateKeyDialogReseller({
               <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>
-                  Insufficient credits. You have {currentCredits.toString()} but need{" "}
-                  {creditCost.toString()}.
+                  Insufficient credits. You have {currentCredits.toString()} but
+                  need {creditCost.toString()}.
                 </span>
               </div>
             )}
@@ -204,7 +211,8 @@ export function CreateKeyDialogReseller({
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Keys are bound to the selected injector and will only work with it
+                Keys are bound to the selected injector and will only work with
+                it
               </p>
             </div>
 
@@ -265,9 +273,7 @@ export function CreateKeyDialogReseller({
               </div>
               <div className="flex items-center justify-between mt-1 text-muted-foreground">
                 <span>Remaining after:</span>
-                <span>
-                  {(currentCredits - creditCost).toString()} credits
-                </span>
+                <span>{(currentCredits - creditCost).toString()} credits</span>
               </div>
             </div>
           </div>

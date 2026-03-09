@@ -1,11 +1,15 @@
-import { useState } from "react";
 import {
-  useGetAllKeys,
-  useBlockKey,
-  useUnblockKey,
-  useDeleteKey,
-  useGetAllInjectors,
-} from "@/hooks/useQueries";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,19 +25,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Copy, Lock, Unlock, Loader2, Smartphone, Trash2 } from "lucide-react";
+  useBlockKey,
+  useDeleteKey,
+  useGetAllInjectors,
+  useGetAllKeys,
+  useUnblockKey,
+} from "@/hooks/useQueries";
+import { Copy, Loader2, Lock, Smartphone, Trash2, Unlock } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import type { LoginKey } from "../backend";
 import { KeyDetailsModal } from "./KeyDetailsModal";
@@ -97,20 +97,20 @@ export function KeysTable() {
   const getDeviceUsageDisplay = (key: LoginKey) => {
     const current = Number(key.deviceCount);
     const max = key.maxDevices ? Number(key.maxDevices) : null;
-    
+
     if (max === null) {
       return { text: "Unlimited", variant: "secondary" as const };
     }
-    
+
     const percentage = (current / max) * 100;
     let variant: "default" | "secondary" | "destructive" = "default";
-    
+
     if (current >= max) {
       variant = "destructive";
     } else if (percentage >= 80) {
       variant = "secondary";
     }
-    
+
     return { text: `${current} / ${max}`, variant };
   };
 
@@ -148,8 +148,9 @@ export function KeysTable() {
   const handleRowClick = (e: React.MouseEvent, key: LoginKey) => {
     // Don't open modal if clicking on action buttons or their children
     const target = e.target as HTMLElement;
-    const isActionButton = target.closest('button') || target.closest('[role="button"]');
-    
+    const isActionButton =
+      target.closest("button") || target.closest('[role="button"]');
+
     if (!isActionButton) {
       setSelectedKey(key);
     }
@@ -211,7 +212,9 @@ export function KeysTable() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="font-mono">ID</TableHead>
-                    <TableHead className="font-mono min-w-[200px]">Key Value</TableHead>
+                    <TableHead className="font-mono min-w-[200px]">
+                      Key Value
+                    </TableHead>
                     <TableHead>Injector</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Expires</TableHead>
@@ -223,7 +226,7 @@ export function KeysTable() {
                 </TableHeader>
                 <TableBody>
                   {keys.map((key) => (
-                    <TableRow 
+                    <TableRow
                       key={key.id.toString()}
                       onClick={(e) => handleRowClick(e, key)}
                       className="cursor-pointer hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-colors"
@@ -260,9 +263,9 @@ export function KeysTable() {
                       <TableCell>
                         {(() => {
                           const deviceUsage = getDeviceUsageDisplay(key);
-                          const isAtLimit = key.maxDevices && 
-                            key.deviceCount >= key.maxDevices;
-                          
+                          const isAtLimit =
+                            key.maxDevices && key.deviceCount >= key.maxDevices;
+
                           return (
                             <Badge
                               variant={deviceUsage.variant}
@@ -404,7 +407,8 @@ export function KeysTable() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Key?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this key? This action cannot be undone.
+              Are you sure you want to delete this key? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

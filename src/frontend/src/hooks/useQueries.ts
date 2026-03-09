@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type {
+  Injector,
+  InjectorId,
+  KeyId,
+  LoginKey,
+  Reseller,
+  ResellerId,
+} from "../backend";
 import { useActor } from "./useActor";
-import type { LoginKey, KeyId, Injector, InjectorId, Reseller, ResellerId } from "../backend";
 
 export function useGetAllKeys() {
   const { actor, isFetching } = useActor();
@@ -31,10 +38,13 @@ export function useCreateKey() {
       maxDevices?: bigint;
     }) => {
       if (!actor) throw new Error("Actor not initialized");
-      
-      const expires = expiresInSeconds === BigInt(0) ? undefined : 
-        BigInt(Date.now() * 1_000_000) + (expiresInSeconds * BigInt(1_000_000_000));
-      
+
+      const expires =
+        expiresInSeconds === BigInt(0)
+          ? undefined
+          : BigInt(Date.now() * 1_000_000) +
+            expiresInSeconds * BigInt(1_000_000_000);
+
       await actor.adminCreateKey({
         key: keyValue,
         injector: injectorId ?? undefined,
@@ -127,8 +137,13 @@ export function useCreateInjector() {
         await actor.createInjector(name, redirectUrl);
       } catch (err: any) {
         // Check if it's an authentication error
-        if (err?.message?.includes("AUTHENTICATION_FAILED") || err?.message?.includes("authentication")) {
-          throw new Error("Authentication expired. Please log out and log in again.");
+        if (
+          err?.message?.includes("AUTHENTICATION_FAILED") ||
+          err?.message?.includes("authentication")
+        ) {
+          throw new Error(
+            "Authentication expired. Please log out and log in again.",
+          );
         }
         throw err;
       }
@@ -216,8 +231,13 @@ export function useUpdatePanelSettings() {
       try {
         await actor.updatePanelSettings({ panelName, themePreset });
       } catch (err: any) {
-        if (err?.message?.includes("AUTHENTICATION_FAILED") || err?.message?.includes("authentication")) {
-          throw new Error("Authentication expired. Please log out and log in again.");
+        if (
+          err?.message?.includes("AUTHENTICATION_FAILED") ||
+          err?.message?.includes("authentication")
+        ) {
+          throw new Error(
+            "Authentication expired. Please log out and log in again.",
+          );
         }
         throw err;
       }
@@ -244,7 +264,7 @@ export function useResellerAuthenticate() {
       try {
         const resellerId = await actor.authenticateReseller(username, password);
         return resellerId;
-      } catch (err: any) {
+      } catch (_err: any) {
         throw new Error("Invalid username or password");
       }
     },
@@ -279,10 +299,10 @@ export function useCreateReseller() {
       initialCredits: bigint;
     }) => {
       if (!actor) throw new Error("Actor not initialized");
-      
+
       // Create reseller
       await actor.createReseller(username, password);
-      
+
       // If initial credits > 0, add them
       if (initialCredits > BigInt(0)) {
         // Get the newly created reseller to get their ID
@@ -434,25 +454,31 @@ export function useResellerCreateKey() {
       maxDevices?: bigint;
     }) => {
       if (!actor) throw new Error("Actor not initialized");
-      
-      const expires = expiresInSeconds === BigInt(0) ? undefined : 
-        BigInt(Date.now() * 1_000_000) + (expiresInSeconds * BigInt(1_000_000_000));
-      
-      await actor.resellerCreateKey({
-        key: keyValue,
-        injector: injectorId ?? undefined,
-        expires,
-        maxDevices,
+
+      const expires =
+        expiresInSeconds === BigInt(0)
+          ? undefined
+          : BigInt(Date.now() * 1_000_000) +
+            expiresInSeconds * BigInt(1_000_000_000);
+
+      await actor.resellerCreateKey(
+        {
+          key: keyValue,
+          injector: injectorId ?? undefined,
+          expires,
+          maxDevices,
+          resellerId,
+        },
         resellerId,
-      }, resellerId);
+      );
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["keys"] });
-      queryClient.invalidateQueries({ 
-        queryKey: ["keys", "reseller", variables.resellerId.toString()] 
+      queryClient.invalidateQueries({
+        queryKey: ["keys", "reseller", variables.resellerId.toString()],
       });
-      queryClient.invalidateQueries({ 
-        queryKey: ["reseller", variables.resellerId.toString()] 
+      queryClient.invalidateQueries({
+        queryKey: ["reseller", variables.resellerId.toString()],
       });
     },
   });

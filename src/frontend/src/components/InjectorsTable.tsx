@@ -1,8 +1,14 @@
-import { useState } from "react";
 import {
-  useGetAllInjectors,
-  useDeleteInjector,
-} from "@/hooks/useQueries";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -18,18 +24,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Copy, Trash2, Loader2, Download } from "lucide-react";
+import { useDeleteInjector, useGetAllInjectors } from "@/hooks/useQueries";
+import { Copy, Download, Loader2, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import type { Injector, InjectorId } from "../backend";
 
@@ -48,7 +45,7 @@ function formatTimestamp(timestamp?: bigint): string {
   });
 }
 
-function copyToClipboard(text: string, label: string = "Copied") {
+function copyToClipboard(text: string, label = "Copied") {
   navigator.clipboard.writeText(text);
   toast.success(`${label} copied to clipboard`);
 }
@@ -63,7 +60,10 @@ interface InjectorsTableProps {
   onExportKeys?: (injectorId: InjectorId, injectorName: string) => void;
 }
 
-export function InjectorsTable({ keyCounts, onExportKeys }: InjectorsTableProps) {
+export function InjectorsTable({
+  keyCounts,
+  onExportKeys,
+}: InjectorsTableProps) {
   const { data: injectors = [], isLoading } = useGetAllInjectors();
   const deleteInjector = useDeleteInjector();
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog>({
@@ -130,7 +130,8 @@ export function InjectorsTable({ keyCounts, onExportKeys }: InjectorsTableProps)
                 </TableHeader>
                 <TableBody>
                   {injectors.map((injector) => {
-                    const keyCount = keyCounts?.get(injector.id.toString()) ?? 0;
+                    const keyCount =
+                      keyCounts?.get(injector.id.toString()) ?? 0;
                     return (
                       <TableRow key={injector.id.toString()}>
                         <TableCell className="font-medium">
@@ -145,7 +146,10 @@ export function InjectorsTable({ keyCounts, onExportKeys }: InjectorsTableProps)
                               variant="ghost"
                               size="sm"
                               onClick={() =>
-                                copyToClipboard(injector.id.toString(), "Injector ID")
+                                copyToClipboard(
+                                  injector.id.toString(),
+                                  "Injector ID",
+                                )
                               }
                               className="h-7 w-7 p-0 shrink-0"
                             >
@@ -154,7 +158,9 @@ export function InjectorsTable({ keyCounts, onExportKeys }: InjectorsTableProps)
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="font-mono font-medium">{keyCount}</span>
+                          <span className="font-mono font-medium">
+                            {keyCount}
+                          </span>
                         </TableCell>
                         <TableCell className="text-sm">
                           {formatTimestamp(injector.created)}
@@ -210,8 +216,9 @@ export function InjectorsTable({ keyCounts, onExportKeys }: InjectorsTableProps)
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Injector?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete "{confirmDialog.injector?.name}".
-              All keys assigned to this injector will become unassigned. This action cannot be undone.
+              This will permanently delete "{confirmDialog.injector?.name}". All
+              keys assigned to this injector will become unassigned. This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

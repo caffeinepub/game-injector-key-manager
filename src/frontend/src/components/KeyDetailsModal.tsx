@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Copy, Lock, Unlock, Smartphone, Trash2, Loader2 } from "lucide-react";
+import { Copy, Loader2, Lock, Smartphone, Trash2, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import type { LoginKey } from "../backend";
 
@@ -50,7 +50,8 @@ export function KeyDetailsModal({
   if (!keyData) return null;
 
   const deviceUsage = getDeviceUsageDisplay(keyData);
-  const isAtLimit = keyData.maxDevices && keyData.deviceCount >= keyData.maxDevices;
+  const isAtLimit =
+    keyData.maxDevices && keyData.deviceCount >= keyData.maxDevices;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -132,10 +133,7 @@ export function KeyDetailsModal({
             <span className="font-semibold text-sm">Status:</span>
             <div className="col-span-2">
               {keyData.blocked ? (
-                <Badge
-                  variant="destructive"
-                  className="gap-1 animate-pulse"
-                >
+                <Badge variant="destructive" className="gap-1 animate-pulse">
                   <Lock className="h-3 w-3" />
                   Blocked
                 </Badge>

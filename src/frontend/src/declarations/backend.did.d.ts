@@ -104,7 +104,7 @@ export interface _SERVICE {
   /**
    * / -------  NEW verifyLogin replaces verifyLicense function ------- ///
    */
-  'verifyLoginWithInjector' : ActorMethod<
+  'verifyKey' : ActorMethod<
     [string, string, string],
     { 'status' : string, 'valid' : boolean, 'message' : string }
   >,

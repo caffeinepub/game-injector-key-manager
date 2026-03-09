@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useCreateKey, useGetAllInjectors } from "@/hooks/useQueries";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +8,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,7 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Loader2, Wand2 } from "lucide-react";
+import { useCreateKey, useGetAllInjectors } from "@/hooks/useQueries";
+import { Loader2, Plus, Wand2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import type { InjectorId } from "../backend";
 
@@ -54,10 +54,10 @@ export function CreateKeyDialog() {
   const [open, setOpen] = useState(false);
   const [keyValue, setKeyValue] = useState("");
   const [selectedDuration, setSelectedDuration] = useState<bigint>(
-    BigInt(86400)
+    BigInt(86400),
   );
   const [selectedInjector, setSelectedInjector] = useState<InjectorId | null>(
-    null
+    null,
   );
   const [maxDevices, setMaxDevices] = useState<number | null>(null);
   const createKey = useCreateKey();
@@ -119,7 +119,8 @@ export function CreateKeyDialog() {
           <DialogHeader>
             <DialogTitle>Create New Login Key</DialogTitle>
             <DialogDescription>
-              Generate a new authentication key with custom duration and device limits.
+              Generate a new authentication key with custom duration and device
+              limits.
             </DialogDescription>
           </DialogHeader>
 
@@ -182,7 +183,8 @@ export function CreateKeyDialog() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Keys are bound to the selected injector and will only work with it
+                Keys are bound to the selected injector and will only work with
+                it
               </p>
             </div>
 

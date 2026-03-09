@@ -44,7 +44,7 @@ export function PurpleParticles() {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      particlesRef.current.forEach((particle) => {
+      for (const particle of particlesRef.current) {
         // Update position
         particle.x += particle.speedX;
         particle.y += particle.speedY;
@@ -60,7 +60,7 @@ export function PurpleParticles() {
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity})`;
         ctx.fill();
-      });
+      }
 
       animationFrameRef.current = requestAnimationFrame(animate);
     };

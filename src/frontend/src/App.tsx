@@ -1,22 +1,32 @@
-import { ThemeProvider } from "./components/theme-provider";
+import { useAdminAuth } from "@/components/AdminLogin";
+import { ApiDocsSection } from "@/components/ApiDocsSection";
+import { CreateKeyDialog } from "@/components/CreateKeyDialog";
+import { InjectorsSection } from "@/components/InjectorsSection";
+import { KeysTable } from "@/components/KeysTable";
+import { PurpleParticles } from "@/components/PurpleParticles";
+import { ResellerDashboard } from "@/components/ResellerDashboard";
+import { ResellersSection } from "@/components/ResellersSection";
+import { RoleSelector, type UserRole } from "@/components/RoleSelector";
+import { SettingsSection } from "@/components/SettingsSection";
+import { StatsCards } from "@/components/StatsCards";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { StatsCards } from "@/components/StatsCards";
-import { CreateKeyDialog } from "@/components/CreateKeyDialog";
-import { KeysTable } from "@/components/KeysTable";
-import { InjectorsSection } from "@/components/InjectorsSection";
-import { ResellersSection } from "@/components/ResellersSection";
-import { SettingsSection } from "@/components/SettingsSection";
-import { ApiDocsSection } from "@/components/ApiDocsSection";
-import { RoleSelector, type UserRole } from "@/components/RoleSelector";
-import { ResellerDashboard } from "@/components/ResellerDashboard";
-import { useAdminAuth } from "@/components/AdminLogin";
-import { PurpleParticles } from "@/components/PurpleParticles";
-import { Shield, LogOut, Moon, Sun, Key, Gamepad2, Settings, Users, FileCode } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useGetPanelSettings } from "@/hooks/useQueries";
+import {
+  FileCode,
+  Gamepad2,
+  Key,
+  LogOut,
+  Moon,
+  Settings,
+  Shield,
+  Sun,
+  Users,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import type { ResellerId } from "./backend";
+import { ThemeProvider } from "./components/theme-provider";
 
 function Dashboard() {
   const { logout: adminLogout, reAuthenticate } = useAdminAuth();
@@ -67,15 +77,15 @@ function Dashboard() {
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Purple-white gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-purple-900 to-purple-800" />
-      
+
       {/* Animated pulsing radial gradient */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.08),transparent_50%)]">
         <div className="absolute inset-0 animate-pulse-slow bg-[radial-gradient(circle_at_30%_70%,rgba(255,255,255,0.05),transparent_60%)]" />
       </div>
-      
+
       {/* Moving white particles */}
       <PurpleParticles />
-      
+
       <div className="relative z-10">
         <header className="border-b border-white/10 bg-black/20 backdrop-blur-md">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -83,14 +93,16 @@ function Dashboard() {
               <Shield className="h-6 w-6 text-purple-300" />
               <div>
                 <h1 className="text-xl font-bold text-white">{panelName}</h1>
-                <p className="text-xs text-purple-200">
-                  Admin Dashboard
-                </p>
+                <p className="text-xs text-purple-200">Admin Dashboard</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <Button variant="outline" onClick={handleLogout} className="gap-2 border-white/20 text-white hover:bg-white/10">
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="gap-2 border-white/20 text-white hover:bg-white/10"
+              >
                 <LogOut className="h-4 w-4" />
                 Logout
               </Button>
@@ -101,23 +113,38 @@ function Dashboard() {
         <main className="container mx-auto px-4 py-8">
           <Tabs defaultValue="keys" className="space-y-6">
             <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-5 bg-black/30 backdrop-blur-sm border border-white/10">
-              <TabsTrigger value="keys" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              <TabsTrigger
+                value="keys"
+                className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+              >
                 <Key className="h-4 w-4" />
                 Keys
               </TabsTrigger>
-              <TabsTrigger value="injectors" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              <TabsTrigger
+                value="injectors"
+                className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+              >
                 <Gamepad2 className="h-4 w-4" />
                 Injectors
               </TabsTrigger>
-              <TabsTrigger value="resellers" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              <TabsTrigger
+                value="resellers"
+                className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+              >
                 <Users className="h-4 w-4" />
                 Resellers
               </TabsTrigger>
-              <TabsTrigger value="api-docs" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              <TabsTrigger
+                value="api-docs"
+                className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+              >
                 <FileCode className="h-4 w-4" />
                 API Docs
               </TabsTrigger>
-              <TabsTrigger value="settings" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              <TabsTrigger
+                value="settings"
+                className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+              >
                 <Settings className="h-4 w-4" />
                 Settings
               </TabsTrigger>
@@ -126,7 +153,9 @@ function Dashboard() {
             <TabsContent value="keys" className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-3xl font-bold mb-2 text-white">Login Key Management</h2>
+                  <h2 className="text-3xl font-bold mb-2 text-white">
+                    Login Key Management
+                  </h2>
                   <p className="text-purple-200">
                     Create, monitor, and control authentication keys
                   </p>
@@ -169,7 +198,7 @@ function ThemeToggle() {
   const toggleTheme = () => {
     const root = document.documentElement;
     const currentTheme = root.getAttribute("data-theme") || "default";
-    
+
     // Simple toggle between light and dark
     if (currentTheme === "light") {
       root.setAttribute("data-theme", "default");
@@ -195,7 +224,9 @@ export default function App() {
   const { isAdminAuthenticated, authenticate, logout } = useAdminAuth();
   const [userRole, setUserRole] = useState<UserRole | null>(() => {
     const storedRole = localStorage.getItem("userRole");
-    return storedRole === "admin" || storedRole === "reseller" ? storedRole : null;
+    return storedRole === "admin" || storedRole === "reseller"
+      ? storedRole
+      : null;
   });
   const [resellerId, setResellerId] = useState<ResellerId | null>(() => {
     const storedId = localStorage.getItem("resellerId");
@@ -218,9 +249,10 @@ export default function App() {
   };
 
   // Check if user is authenticated
-  const isAuthenticated = userRole === "admin" 
-    ? isAdminAuthenticated 
-    : userRole === "reseller" && resellerId !== null;
+  const isAuthenticated =
+    userRole === "admin"
+      ? isAdminAuthenticated
+      : userRole === "reseller" && resellerId !== null;
 
   if (!isAuthenticated) {
     return (

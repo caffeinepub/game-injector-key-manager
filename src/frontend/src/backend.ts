@@ -184,7 +184,7 @@ export interface backendInterface {
     /**
      * / -------  NEW verifyLogin replaces verifyLicense function ------- ///
      */
-    verifyLoginWithInjector(key: string, deviceId: string, injectorIdParam: string): Promise<{
+    verifyKey(key: string, deviceId: string, injectorIdParam: string): Promise<{
         status: string;
         valid: boolean;
         message: string;
@@ -701,21 +701,21 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async verifyLoginWithInjector(arg0: string, arg1: string, arg2: string): Promise<{
+    async verifyKey(arg0: string, arg1: string, arg2: string): Promise<{
         status: string;
         valid: boolean;
         message: string;
     }> {
         if (this.processError) {
             try {
-                const result = await this.actor.verifyLoginWithInjector(arg0, arg1, arg2);
+                const result = await this.actor.verifyKey(arg0, arg1, arg2);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.verifyLoginWithInjector(arg0, arg1, arg2);
+            const result = await this.actor.verifyKey(arg0, arg1, arg2);
             return result;
         }
     }

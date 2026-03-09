@@ -1,36 +1,3 @@
-import { useState } from "react";
-import {
-  useGetAllResellers,
-  useCreateReseller,
-  useDeleteReseller,
-  useAddCredits,
-  useGetKeyCreditCost,
-  useSetKeyCreditCost,
-} from "@/hooks/useQueries";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,11 +8,44 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Users, Plus, Loader2, Trash2, Coins } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  useAddCredits,
+  useCreateReseller,
+  useDeleteReseller,
+  useGetAllResellers,
+  useGetKeyCreditCost,
+  useSetKeyCreditCost,
+} from "@/hooks/useQueries";
+import { Coins, Loader2, Plus, Trash2, Users } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import type { Reseller, ResellerId } from "../backend";
 
@@ -78,11 +78,15 @@ export function ResellersSection() {
   const [initialCredits, setInitialCredits] = useState("");
 
   const [creditsDialogOpen, setCreditsDialogOpen] = useState(false);
-  const [selectedReseller, setSelectedReseller] = useState<Reseller | null>(null);
+  const [selectedReseller, setSelectedReseller] = useState<Reseller | null>(
+    null,
+  );
   const [creditsAmount, setCreditsAmount] = useState("");
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [resellerToDelete, setResellerToDelete] = useState<Reseller | null>(null);
+  const [resellerToDelete, setResellerToDelete] = useState<Reseller | null>(
+    null,
+  );
 
   const [costDialogOpen, setCostDialogOpen] = useState(false);
   const [newCreditCost, setNewCreditCost] = useState("");
@@ -95,7 +99,9 @@ export function ResellersSection() {
       return;
     }
 
-    const credits = initialCredits ? BigInt(parseInt(initialCredits)) : BigInt(0);
+    const credits = initialCredits
+      ? BigInt(Number.parseInt(initialCredits))
+      : BigInt(0);
 
     try {
       await createReseller.mutateAsync({
@@ -122,7 +128,7 @@ export function ResellersSection() {
       return;
     }
 
-    const amount = BigInt(parseInt(creditsAmount));
+    const amount = BigInt(Number.parseInt(creditsAmount));
     if (amount <= BigInt(0)) {
       toast.error("Amount must be greater than 0");
       return;
@@ -133,7 +139,9 @@ export function ResellersSection() {
         resellerId: selectedReseller.id,
         amount,
       });
-      toast.success(`Added ${creditsAmount} credits to ${selectedReseller.username}`);
+      toast.success(
+        `Added ${creditsAmount} credits to ${selectedReseller.username}`,
+      );
       setCreditsDialogOpen(false);
       setSelectedReseller(null);
       setCreditsAmount("");
@@ -148,7 +156,9 @@ export function ResellersSection() {
 
     try {
       await deleteReseller.mutateAsync(resellerToDelete.id);
-      toast.success(`Reseller ${resellerToDelete.username} deleted successfully`);
+      toast.success(
+        `Reseller ${resellerToDelete.username} deleted successfully`,
+      );
       setDeleteDialogOpen(false);
       setResellerToDelete(null);
     } catch (error: any) {
@@ -160,7 +170,7 @@ export function ResellersSection() {
   const handleUpdateCreditCost = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const cost = BigInt(parseInt(newCreditCost));
+    const cost = BigInt(Number.parseInt(newCreditCost));
     if (cost <= BigInt(0)) {
       toast.error("Cost must be greater than 0");
       return;
@@ -182,7 +192,9 @@ export function ResellersSection() {
       <Card>
         <CardHeader>
           <CardTitle>Resellers</CardTitle>
-          <CardDescription>Manage reseller accounts and credits</CardDescription>
+          <CardDescription>
+            Manage reseller accounts and credits
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-12">
@@ -358,7 +370,9 @@ export function ResellersSection() {
                       <TableCell>
                         <Badge
                           variant={
-                            reseller.credits > BigInt(0) ? "default" : "secondary"
+                            reseller.credits > BigInt(0)
+                              ? "default"
+                              : "secondary"
                           }
                           className="gap-1 font-mono"
                         >
@@ -432,7 +446,8 @@ export function ResellersSection() {
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Current balance: {selectedReseller?.credits.toString() || "0"} credits
+                  Current balance: {selectedReseller?.credits.toString() || "0"}{" "}
+                  credits
                 </p>
               </div>
             </div>
@@ -462,8 +477,10 @@ export function ResellersSection() {
             <AlertDialogTitle>Delete Reseller?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete the reseller account for{" "}
-              <span className="font-semibold">{resellerToDelete?.username}</span>.
-              This action cannot be undone.
+              <span className="font-semibold">
+                {resellerToDelete?.username}
+              </span>
+              . This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

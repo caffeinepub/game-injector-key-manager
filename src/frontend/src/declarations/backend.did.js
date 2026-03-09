@@ -119,7 +119,7 @@ export const idlService = IDL.Service({
       ],
       ['query'],
     ),
-  'verifyLoginWithInjector' : IDL.Func(
+  'verifyKey' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text],
       [
         IDL.Record({
@@ -258,7 +258,7 @@ export const idlFactory = ({ IDL }) => {
         ],
         ['query'],
       ),
-    'verifyLoginWithInjector' : IDL.Func(
+    'verifyKey' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text],
         [
           IDL.Record({
