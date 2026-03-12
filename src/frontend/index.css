@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,8 +6,7 @@
 
 @layer base {
   :root {
-    --radius: 0rem;
-    /* Light mode - clean white base */
+    --radius: 0.75rem;
     --background: 0.99 0 0;
     --foreground: 0.2 0 0;
     --card: 1 0 0;
@@ -46,7 +45,6 @@
 
   .dark,
   [data-theme="default"] {
-    /* Dark mode - cyberpunk industrial */
     --background: 0.12 0.01 240;
     --foreground: 0.95 0.02 180;
     --card: 0.18 0.015 240;
@@ -84,7 +82,6 @@
   }
 
   [data-theme="light"] {
-    /* Light mode - clean white base */
     --background: 0.99 0 0;
     --foreground: 0.2 0 0;
     --card: 1 0 0;
@@ -106,11 +103,6 @@
     --border: 0.88 0 0;
     --input: 0.88 0 0;
     --ring: 0.6 0.25 210;
-    --chart-1: 0.6 0.25 210;
-    --chart-2: 0.65 0.25 145;
-    --chart-3: 0.55 0.22 25;
-    --chart-4: 0.7 0.2 280;
-    --chart-5: 0.65 0.2 40;
     --sidebar: 0.98 0 0;
     --sidebar-foreground: 0.2 0 0;
     --sidebar-primary: 0.6 0.25 210;
@@ -122,7 +114,6 @@
   }
 
   [data-theme="blue"] {
-    /* Blue theme - deep ocean */
     --background: 0.14 0.04 240;
     --foreground: 0.96 0.02 210;
     --card: 0.20 0.05 240;
@@ -144,11 +135,6 @@
     --border: 0.32 0.05 240;
     --input: 0.32 0.05 240;
     --ring: 0.68 0.28 230;
-    --chart-1: 0.68 0.28 230;
-    --chart-2: 0.72 0.30 200;
-    --chart-3: 0.7 0.28 142;
-    --chart-4: 0.75 0.22 280;
-    --chart-5: 0.7 0.2 40;
     --sidebar: 0.16 0.04 240;
     --sidebar-foreground: 0.96 0.02 210;
     --sidebar-primary: 0.68 0.28 230;
@@ -160,7 +146,6 @@
   }
 
   [data-theme="purple"] {
-    /* Purple theme - mystic dark */
     --background: 0.13 0.03 280;
     --foreground: 0.94 0.02 300;
     --card: 0.19 0.04 280;
@@ -182,11 +167,6 @@
     --border: 0.31 0.04 280;
     --input: 0.31 0.04 280;
     --ring: 0.66 0.26 290;
-    --chart-1: 0.66 0.26 290;
-    --chart-2: 0.70 0.28 320;
-    --chart-3: 0.72 0.24 260;
-    --chart-4: 0.7 0.28 142;
-    --chart-5: 0.68 0.26 340;
     --sidebar: 0.15 0.03 280;
     --sidebar-foreground: 0.94 0.02 300;
     --sidebar-primary: 0.66 0.26 290;
@@ -198,7 +178,6 @@
   }
 
   [data-theme="green"] {
-    /* Green theme - matrix terminal */
     --background: 0.10 0.02 150;
     --foreground: 0.92 0.03 140;
     --card: 0.16 0.03 150;
@@ -220,11 +199,6 @@
     --border: 0.28 0.03 150;
     --input: 0.28 0.03 150;
     --ring: 0.68 0.30 145;
-    --chart-1: 0.68 0.30 145;
-    --chart-2: 0.75 0.32 165;
-    --chart-3: 0.72 0.28 130;
-    --chart-4: 0.70 0.26 180;
-    --chart-5: 0.65 0.28 120;
     --sidebar: 0.12 0.02 150;
     --sidebar-foreground: 0.92 0.03 140;
     --sidebar-primary: 0.68 0.30 145;
@@ -240,133 +214,51 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 }
 
 @layer utilities {
-  /* Custom animations for live background effects */
   @keyframes float {
-    0%, 100% {
-      transform: translate(0, 0) scale(1);
-      opacity: 0.6;
-    }
-    33% {
-      transform: translate(30px, -30px) scale(1.1);
-      opacity: 0.8;
-    }
-    66% {
-      transform: translate(-20px, 20px) scale(0.9);
-      opacity: 0.7;
-    }
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+    33% { transform: translate(30px, -30px) scale(1.1); opacity: 0.8; }
+    66% { transform: translate(-20px, 20px) scale(0.9); opacity: 0.7; }
   }
-
   @keyframes float-delayed {
-    0%, 100% {
-      transform: translate(0, 0) scale(1);
-      opacity: 0.5;
-    }
-    33% {
-      transform: translate(-40px, 30px) scale(1.15);
-      opacity: 0.7;
-    }
-    66% {
-      transform: translate(25px, -25px) scale(0.95);
-      opacity: 0.6;
-    }
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+    33% { transform: translate(-40px, 30px) scale(1.15); opacity: 0.7; }
+    66% { transform: translate(25px, -25px) scale(0.95); opacity: 0.6; }
   }
-
   @keyframes float-slow {
-    0%, 100% {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 0.6;
-    }
-    50% {
-      transform: translate(-50%, -50%) scale(1.2);
-      opacity: 0.8;
-    }
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
   }
-
   @keyframes float-reverse {
-    0%, 100% {
-      transform: translate(0, 0) scale(1);
-      opacity: 0.4;
-    }
-    50% {
-      transform: translate(-30px, -30px) scale(1.1);
-      opacity: 0.6;
-    }
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+    50% { transform: translate(-30px, -30px) scale(1.1); opacity: 0.6; }
   }
-
   @keyframes slide-down {
-    0% {
-      transform: translateY(-100vh);
-    }
-    100% {
-      transform: translateY(200vh);
-    }
+    0% { transform: translateY(-100vh); }
+    100% { transform: translateY(200vh); }
   }
-
   @keyframes slide-down-delayed {
-    0% {
-      transform: translateY(-100vh);
-    }
-    100% {
-      transform: translateY(200vh);
-    }
+    0% { transform: translateY(-100vh); }
+    100% { transform: translateY(200vh); }
   }
-
   @keyframes slide-down-slow {
-    0% {
-      transform: translateY(-100vh);
-    }
-    100% {
-      transform: translateY(200vh);
-    }
+    0% { transform: translateY(-100vh); }
+    100% { transform: translateY(200vh); }
   }
-
   @keyframes pulse-slow {
-    0%, 100% {
-      opacity: 0.3;
-    }
-    50% {
-      opacity: 0.8;
-    }
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
   }
-
-  .animate-float {
-    animation: float 8s ease-in-out infinite;
-  }
-
-  .animate-float-delayed {
-    animation: float-delayed 10s ease-in-out infinite;
-    animation-delay: 2s;
-  }
-
-  .animate-float-slow {
-    animation: float-slow 12s ease-in-out infinite;
-    animation-delay: 1s;
-  }
-
-  .animate-float-reverse {
-    animation: float-reverse 9s ease-in-out infinite;
-    animation-delay: 3s;
-  }
-
-  .animate-slide-down {
-    animation: slide-down 15s linear infinite;
-  }
-
-  .animate-slide-down-delayed {
-    animation: slide-down-delayed 18s linear infinite;
-    animation-delay: 5s;
-  }
-
-  .animate-slide-down-slow {
-    animation: slide-down-slow 22s linear infinite;
-    animation-delay: 10s;
-  }
-
-  .animate-pulse-slow {
-    animation: pulse-slow 6s ease-in-out infinite;
-  }
+  .animate-float { animation: float 8s ease-in-out infinite; }
+  .animate-float-delayed { animation: float-delayed 10s ease-in-out infinite; animation-delay: 2s; }
+  .animate-float-slow { animation: float-slow 12s ease-in-out infinite; animation-delay: 1s; }
+  .animate-float-reverse { animation: float-reverse 9s ease-in-out infinite; animation-delay: 3s; }
+  .animate-slide-down { animation: slide-down 15s linear infinite; }
+  .animate-slide-down-delayed { animation: slide-down-delayed 18s linear infinite; animation-delay: 5s; }
+  .animate-slide-down-slow { animation: slide-down-slow 22s linear infinite; animation-delay: 10s; }
+  .animate-pulse-slow { animation: pulse-slow 6s ease-in-out infinite; }
 }

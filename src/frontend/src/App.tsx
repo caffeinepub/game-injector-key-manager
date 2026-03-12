@@ -2,8 +2,8 @@ import { useAdminAuth } from "@/components/AdminLogin";
 import { ApiDocsSection } from "@/components/ApiDocsSection";
 import { CreateKeyDialog } from "@/components/CreateKeyDialog";
 import { InjectorsSection } from "@/components/InjectorsSection";
+import { KeyStatsChart } from "@/components/KeyStatsChart";
 import { KeysTable } from "@/components/KeysTable";
-import { PurpleParticles } from "@/components/PurpleParticles";
 import { ResellerDashboard } from "@/components/ResellerDashboard";
 import { ResellersSection } from "@/components/ResellersSection";
 import { RoleSelector, type UserRole } from "@/components/RoleSelector";
@@ -11,31 +11,164 @@ import { SettingsSection } from "@/components/SettingsSection";
 import { StatsCards } from "@/components/StatsCards";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetPanelSettings } from "@/hooks/useQueries";
 import {
   FileCode,
   Gamepad2,
   Key,
   LogOut,
-  Moon,
+  Plus,
   Settings,
   Shield,
-  Sun,
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ResellerId } from "./backend";
 import { ThemeProvider } from "./components/theme-provider";
 
+type AdminSection =
+  | "keys"
+  | "injectors"
+  | "resellers"
+  | "api-docs"
+  | "settings";
+
+function AdminSidebar({
+  activeSection,
+  onSectionChange,
+  panelName,
+  onLogout,
+  onCreateKey,
+}: {
+  activeSection: AdminSection;
+  onSectionChange: (s: AdminSection) => void;
+  panelName: string;
+  onLogout: () => void;
+  onCreateKey: () => void;
+}) {
+  const navItems: { id: AdminSection; label: string; icon: React.ReactNode }[] =
+    [
+      {
+        id: "keys",
+        label: "License Manager",
+        icon: <Key className="h-4 w-4" />,
+      },
+      {
+        id: "injectors",
+        label: "Injectors",
+        icon: <Gamepad2 className="h-4 w-4" />,
+      },
+      {
+        id: "resellers",
+        label: "Resellers",
+        icon: <Users className="h-4 w-4" />,
+      },
+      {
+        id: "api-docs",
+        label: "API Docs",
+        icon: <FileCode className="h-4 w-4" />,
+      },
+      {
+        id: "settings",
+        label: "Settings",
+        icon: <Settings className="h-4 w-4" />,
+      },
+    ];
+
+  return (
+    <aside
+      className="w-60 shrink-0 flex flex-col border-r border-white/5"
+      style={{ background: "#0d1117" }}
+    >
+      {/* Logo */}
+      <div className="p-5 border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-purple-800 flex items-center justify-center shrink-0">
+            <Shield className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <div className="font-bold text-white text-sm leading-tight">
+              {panelName}
+            </div>
+            <div className="text-xs text-gray-500 uppercase tracking-widest">
+              License Manager
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 p-3 space-y-1">
+        <div className="text-xs text-gray-600 uppercase tracking-widest font-bold px-3 pb-2 pt-1">
+          Main
+        </div>
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            data-ocid={`sidebar.${item.id}.link`}
+            onClick={() => onSectionChange(item.id)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+              activeSection === item.id
+                ? "bg-purple-600/20 text-white border border-purple-600/30"
+                : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+            }`}
+          >
+            {item.icon}
+            {item.label}
+          </button>
+        ))}
+
+        {/* Generate Key shortcut */}
+        <div className="pt-2">
+          <button
+            type="button"
+            data-ocid="sidebar.generate_keys.button"
+            onClick={onCreateKey}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 border border-transparent transition-all duration-150"
+          >
+            <Plus className="h-4 w-4" />
+            Generate Keys
+          </button>
+        </div>
+      </nav>
+
+      {/* Bottom user + logout */}
+      <div className="p-3 border-t border-white/5">
+        <div className="flex items-center gap-3 px-2 py-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
+            G
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium text-white truncate">
+              Gaurav
+            </div>
+            <div className="text-xs text-gray-500">Administrator</div>
+          </div>
+        </div>
+        <button
+          type="button"
+          data-ocid="sidebar.logout.button"
+          onClick={onLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-900/20 border border-red-800/30 hover:border-red-700/50 transition-all duration-150"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign Out
+        </button>
+      </div>
+    </aside>
+  );
+}
+
 function Dashboard() {
   const { logout: adminLogout, reAuthenticate } = useAdminAuth();
   const [isReauthenticating, setIsReauthenticating] = useState(true);
   const { data: panelSettings } = useGetPanelSettings();
   const [panelName, setPanelName] = useState("Game Injector");
+  const [activeSection, setActiveSection] = useState<AdminSection>("keys");
+  const [showCreateKey, setShowCreateKey] = useState(false);
 
   useEffect(() => {
-    // Re-authenticate with backend on mount
     const authenticate = async () => {
       await reAuthenticate();
       setIsReauthenticating(false);
@@ -43,11 +176,9 @@ function Dashboard() {
     authenticate();
   }, [reAuthenticate]);
 
-  // Update panel name when settings load or change
   useEffect(() => {
     if (panelSettings) {
       setPanelName(panelSettings.panelName);
-      // Apply theme from settings
       const root = document.documentElement;
       root.setAttribute("data-theme", panelSettings.themePreset);
       if (panelSettings.themePreset === "light") {
@@ -58,165 +189,75 @@ function Dashboard() {
     }
   }, [panelSettings]);
 
-  const handleLogout = () => {
-    adminLogout();
-  };
-
   if (isReauthenticating) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "#0b0d14" }}
+      >
         <div className="text-center space-y-4">
-          <Shield className="h-12 w-12 text-primary mx-auto animate-pulse" />
-          <p className="text-muted-foreground">Authenticating...</p>
+          <div className="w-12 h-12 rounded-full border-2 border-purple-600/30 border-t-purple-500 animate-spin mx-auto" />
+          <p className="text-gray-500 text-sm">Authenticating...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Purple-white gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-purple-900 to-purple-800" />
+    <div
+      className="flex h-screen overflow-hidden"
+      style={{ background: "#0b0d14" }}
+    >
+      <AdminSidebar
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+        panelName={panelName}
+        onLogout={adminLogout}
+        onCreateKey={() => {
+          setActiveSection("keys");
+          setShowCreateKey(true);
+        }}
+      />
 
-      {/* Animated pulsing radial gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.08),transparent_50%)]">
-        <div className="absolute inset-0 animate-pulse-slow bg-[radial-gradient(circle_at_30%_70%,rgba(255,255,255,0.05),transparent_60%)]" />
-      </div>
-
-      {/* Moving white particles */}
-      <PurpleParticles />
-
-      <div className="relative z-10">
-        <header className="border-b border-white/10 bg-black/20 backdrop-blur-md">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield className="h-6 w-6 text-purple-300" />
-              <div>
-                <h1 className="text-xl font-bold text-white">{panelName}</h1>
-                <p className="text-xs text-purple-200">Admin Dashboard</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="gap-2 border-white/20 text-white hover:bg-white/10"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </header>
-
-        <main className="container mx-auto px-4 py-8">
-          <Tabs defaultValue="keys" className="space-y-6">
-            <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-5 bg-black/30 backdrop-blur-sm border border-white/10">
-              <TabsTrigger
-                value="keys"
-                className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-              >
-                <Key className="h-4 w-4" />
-                Keys
-              </TabsTrigger>
-              <TabsTrigger
-                value="injectors"
-                className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-              >
-                <Gamepad2 className="h-4 w-4" />
-                Injectors
-              </TabsTrigger>
-              <TabsTrigger
-                value="resellers"
-                className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-              >
-                <Users className="h-4 w-4" />
-                Resellers
-              </TabsTrigger>
-              <TabsTrigger
-                value="api-docs"
-                className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-              >
-                <FileCode className="h-4 w-4" />
-                API Docs
-              </TabsTrigger>
-              <TabsTrigger
-                value="settings"
-                className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-              >
-                <Settings className="h-4 w-4" />
-                Settings
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="keys" className="space-y-6">
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-6 space-y-6">
+          {activeSection === "keys" && (
+            <>
+              {/* Page header */}
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-3xl font-bold mb-2 text-white">
-                    Login Key Management
+                  <h2 className="text-xl font-bold text-white">
+                    License Manager
                   </h2>
-                  <p className="text-purple-200">
-                    Create, monitor, and control authentication keys
+                  <p className="text-gray-500 text-sm">
+                    Manage authentication keys
                   </p>
                 </div>
-                <CreateKeyDialog />
+                <CreateKeyDialog
+                  externalOpen={showCreateKey}
+                  onExternalOpenChange={setShowCreateKey}
+                />
               </div>
               <StatsCards />
+              <KeyStatsChart />
               <KeysTable />
-            </TabsContent>
+            </>
+          )}
+          {activeSection === "injectors" && <InjectorsSection />}
+          {activeSection === "resellers" && <ResellersSection />}
+          {activeSection === "api-docs" && <ApiDocsSection />}
+          {activeSection === "settings" && (
+            <SettingsSection onPanelNameChange={setPanelName} />
+          )}
+        </div>
 
-            <TabsContent value="injectors" className="space-y-6">
-              <InjectorsSection />
-            </TabsContent>
-
-            <TabsContent value="resellers" className="space-y-6">
-              <ResellersSection />
-            </TabsContent>
-
-            <TabsContent value="api-docs" className="space-y-6">
-              <ApiDocsSection />
-            </TabsContent>
-
-            <TabsContent value="settings" className="space-y-6">
-              <SettingsSection onPanelNameChange={setPanelName} />
-            </TabsContent>
-          </Tabs>
-        </main>
-
-        <footer className="border-t border-white/10 bg-black/20 backdrop-blur-md mt-16">
-          <div className="container mx-auto px-4 py-6 text-center text-sm text-purple-200">
+        <footer className="px-6 py-4 border-t border-white/5 mt-8">
+          <p className="text-xs text-gray-600 text-center">
             © 2026. Made by Gaurav
-          </div>
+          </p>
         </footer>
-      </div>
+      </main>
     </div>
-  );
-}
-
-function ThemeToggle() {
-  const toggleTheme = () => {
-    const root = document.documentElement;
-    const currentTheme = root.getAttribute("data-theme") || "default";
-
-    // Simple toggle between light and dark
-    if (currentTheme === "light") {
-      root.setAttribute("data-theme", "default");
-      root.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      root.setAttribute("data-theme", "light");
-      root.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  };
-
-  return (
-    <Button variant="ghost" size="icon" onClick={toggleTheme}>
-      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Toggle theme</span>
-    </Button>
   );
 }
 
@@ -248,7 +289,6 @@ export default function App() {
     setResellerId(null);
   };
 
-  // Check if user is authenticated
   const isAuthenticated =
     userRole === "admin"
       ? isAdminAuthenticated
@@ -263,7 +303,6 @@ export default function App() {
     );
   }
 
-  // Render reseller dashboard if reseller
   if (userRole === "reseller" && resellerId) {
     return (
       <ThemeProvider defaultTheme="dark" storageKey="theme">
@@ -273,7 +312,6 @@ export default function App() {
     );
   }
 
-  // Render admin dashboard
   return (
     <ThemeProvider defaultTheme="dark" storageKey="theme">
       <Dashboard />

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useGetAllInjectors, useResellerCreateKey } from "@/hooks/useQueries";
 import { AlertCircle, Loader2, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { InjectorId, ResellerId } from "../backend";
 
@@ -53,14 +53,20 @@ interface CreateKeyDialogResellerProps {
   resellerId: ResellerId;
   currentCredits: bigint;
   creditCost: bigint;
+  externalOpen?: boolean;
+  onExternalOpenChange?: (open: boolean) => void;
 }
 
 export function CreateKeyDialogReseller({
   resellerId,
   currentCredits,
   creditCost,
+  externalOpen,
+  onExternalOpenChange,
 }: CreateKeyDialogResellerProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+
   const [keyValue, setKeyValue] = useState("");
   const [selectedDuration, setSelectedDuration] = useState<bigint>(
     BigInt(86400),
@@ -75,31 +81,35 @@ export function CreateKeyDialogReseller({
 
   const canAfford = currentCredits >= creditCost;
 
-  const handleOpen = (isOpen: boolean) => {
-    setOpen(isOpen);
-    if (isOpen) {
+  useEffect(() => {
+    if (open) {
       setKeyValue(generateGauravKey());
       setSelectedDuration(BigInt(86400));
       setSelectedInjector(null);
       setMaxDevices(null);
     }
+  }, [open]);
+
+  const handleOpen = (isOpen: boolean) => {
+    if (externalOpen !== undefined) {
+      onExternalOpenChange?.(isOpen);
+    } else {
+      setInternalOpen(isOpen);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!keyValue.trim()) {
       toast.error("Please enter a key value");
       return;
     }
-
     if (!canAfford) {
       toast.error(
         `Insufficient credits. You need ${creditCost.toString()} credits.`,
       );
       return;
     }
-
     if (selectedInjector === null) {
       toast.error("Please select an injector");
       return;
@@ -116,7 +126,7 @@ export function CreateKeyDialogReseller({
       toast.success(
         `Key created successfully. ${creditCost.toString()} credits deducted.`,
       );
-      setOpen(false);
+      handleOpen(false);
     } catch (error: any) {
       if (error.message?.includes("Insufficient credits")) {
         toast.error(
@@ -150,9 +160,8 @@ export function CreateKeyDialogReseller({
           </DialogHeader>
 
           <div className="space-y-6 py-6">
-            {/* Credit Warning */}
             {!canAfford && (
-              <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded">
+              <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-2xl">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>
                   Insufficient credits. You have {currentCredits.toString()} but
@@ -210,10 +219,6 @@ export function CreateKeyDialogReseller({
                   )}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                Keys are bound to the selected injector and will only work with
-                it
-              </p>
             </div>
 
             <div className="space-y-2">
@@ -257,14 +262,9 @@ export function CreateKeyDialogReseller({
                   </Button>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Limit how many devices can use this key. When limit is reached,
-                new devices will be blocked.
-              </p>
             </div>
 
-            {/* Cost Display */}
-            <div className="p-3 bg-primary/10 border border-primary/20 rounded text-sm">
+            <div className="p-3 bg-primary/10 border border-primary/20 rounded-2xl text-sm">
               <div className="flex items-center justify-between">
                 <span className="font-medium">Cost:</span>
                 <span className="font-bold text-lg">
@@ -282,7 +282,7 @@ export function CreateKeyDialogReseller({
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => handleOpen(false)}
             >
               Cancel
             </Button>

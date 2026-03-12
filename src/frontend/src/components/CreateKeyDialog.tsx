@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useCreateKey, useGetAllInjectors } from "@/hooks/useQueries";
 import { Loader2, Plus, Wand2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { InjectorId } from "../backend";
 
@@ -50,8 +50,18 @@ function generateRandomKey(): string {
   return result;
 }
 
-export function CreateKeyDialog() {
-  const [open, setOpen] = useState(false);
+interface CreateKeyDialogProps {
+  externalOpen?: boolean;
+  onExternalOpenChange?: (open: boolean) => void;
+}
+
+export function CreateKeyDialog({
+  externalOpen,
+  onExternalOpenChange,
+}: CreateKeyDialogProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+
   const [keyValue, setKeyValue] = useState("");
   const [selectedDuration, setSelectedDuration] = useState<bigint>(
     BigInt(86400),
@@ -64,24 +74,29 @@ export function CreateKeyDialog() {
   const { data: injectors = [], isLoading: injectorsLoading } =
     useGetAllInjectors();
 
-  const handleOpen = (isOpen: boolean) => {
-    setOpen(isOpen);
-    if (isOpen) {
+  useEffect(() => {
+    if (open) {
       setKeyValue(generateRandomKey());
       setSelectedDuration(BigInt(86400));
       setSelectedInjector(null);
       setMaxDevices(null);
     }
+  }, [open]);
+
+  const handleOpen = (isOpen: boolean) => {
+    if (externalOpen !== undefined) {
+      onExternalOpenChange?.(isOpen);
+    } else {
+      setInternalOpen(isOpen);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!keyValue.trim()) {
       toast.error("Please enter a key value");
       return;
     }
-
     if (selectedInjector === null) {
       toast.error("Please select an injector");
       return;
@@ -95,7 +110,7 @@ export function CreateKeyDialog() {
         maxDevices: maxDevices !== null ? BigInt(maxDevices) : undefined,
       });
       toast.success("Key created successfully");
-      setOpen(false);
+      handleOpen(false);
     } catch (error: any) {
       if (error.message?.includes("already exists")) {
         toast.error("This key already exists. Please use a different key.");
@@ -229,10 +244,6 @@ export function CreateKeyDialog() {
                   </Button>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Limit how many devices can use this key. When limit is reached,
-                new devices will be blocked.
-              </p>
             </div>
           </div>
 
@@ -240,7 +251,7 @@ export function CreateKeyDialog() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => handleOpen(false)}
             >
               Cancel
             </Button>
