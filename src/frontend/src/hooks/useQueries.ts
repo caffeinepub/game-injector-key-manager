@@ -18,6 +18,7 @@ export function useGetAllKeys() {
       return actor.getAllKeys();
     },
     enabled: !!actor && !isFetching,
+    staleTime: 30_000,
   });
 }
 
@@ -117,6 +118,7 @@ export function useGetAllInjectors() {
       return actor.getAllInjectors();
     },
     enabled: !!actor && !isFetching,
+    staleTime: 30_000,
   });
 }
 
@@ -212,6 +214,7 @@ export function useGetPanelSettings() {
       return actor.getPanelSettings();
     },
     enabled: !!actor && !isFetching,
+    staleTime: 30_000,
   });
 }
 
@@ -281,6 +284,7 @@ export function useGetAllResellers() {
       return actor.getAllResellers();
     },
     enabled: !!actor && !isFetching,
+    staleTime: 30_000,
   });
 }
 
@@ -366,6 +370,7 @@ export function useGetKeyCreditCost() {
       return actor.getKeyCreditCost();
     },
     enabled: !!actor && !isFetching,
+    staleTime: 30_000,
   });
 }
 
@@ -395,7 +400,7 @@ export function useGetResellerById(resellerId: ResellerId) {
       return resellers.find((r) => r.id === resellerId) || null;
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 5000, // Refresh every 5 seconds to show updated credits
+    refetchInterval: 15000, // Refresh every 15 seconds to show updated credits
   });
 }
 
@@ -408,6 +413,7 @@ export function useGetKeysByReseller(resellerId: ResellerId) {
       return actor.getKeysByReseller(resellerId);
     },
     enabled: !!actor && !isFetching,
+    staleTime: 30_000,
   });
 }
 
@@ -420,6 +426,7 @@ export function useGetKeyCountByInjector() {
       return actor.getKeyCountByInjector();
     },
     enabled: !!actor && !isFetching,
+    staleTime: 30_000,
   });
 }
 
@@ -432,6 +439,7 @@ export function useGetKeysByInjector(injectorId: InjectorId) {
       return actor.getKeysByInjector(injectorId);
     },
     enabled: !!actor && !isFetching,
+    staleTime: 30_000,
   });
 }
 

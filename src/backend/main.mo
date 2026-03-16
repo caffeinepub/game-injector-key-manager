@@ -734,4 +734,131 @@ actor {
       };
     };
   };
+
+  // -------- HTTP Gateway for /api/verifyKey --------
+
+  type HttpRequest = {
+    url : Text;
+    method : Text;
+    body : Blob;
+    headers : [(Text, Text)];
+  };
+
+  type HttpResponse = {
+    status_code : Nat16;
+    headers : [(Text, Text)];
+    body : Blob;
+    upgrade : ?Bool;
+  };
+
+  func getQueryParam(url : Text, paramName : Text) : ?Text {
+    let parts = url.split(#char '?').toArray();
+    if (parts.size() < 2) return null;
+    let queryString = parts[1];
+    let paramPairs = queryString.split(#char '&').toArray();
+    for (pair in paramPairs.values()) {
+      let kv = pair.split(#char '=').toArray();
+      if (kv.size() >= 2 and kv[0] == paramName) {
+        return ?kv[1];
+      };
+    };
+    null
+  };
+
+  func getUrlPath(url : Text) : Text {
+    let parts = url.split(#char '?').toArray();
+    if (parts.size() > 0) parts[0] else url
+  };
+
+  func makeJsonResponse(valid : Bool, status : Text, message : Text) : Blob {
+    let validStr = if (valid) "true" else "false";
+    ("{\"valid\":" # validStr # ",\"status\":\"" # status # "\",\"message\":\"" # message # "\"}").encodeUtf8()
+  };
+
+  let corsHeaders : [(Text, Text)] = [
+    ("Access-Control-Allow-Origin", "*"),
+    ("Access-Control-Allow-Methods", "GET, POST, OPTIONS"),
+    ("Access-Control-Allow-Headers", "Content-Type, Authorization"),
+    ("Content-Type", "application/json"),
+  ];
+
+  public query func http_request(req : HttpRequest) : async HttpResponse {
+    if (req.method == "OPTIONS") {
+      return { status_code = 204; headers = corsHeaders; body = ("").encodeUtf8(); upgrade = null };
+    };
+
+    let path = getUrlPath(req.url);
+
+    if (path == "/api/verifyKey") {
+      let keyOpt = getQueryParam(req.url, "key");
+      let deviceIdOpt = getQueryParam(req.url, "deviceId");
+      let injectorIdOpt = getQueryParam(req.url, "injectorId");
+
+      let key = switch (keyOpt) { case (?k) k; case null "" };
+      let deviceId = switch (deviceIdOpt) { case (?d) d; case null "" };
+      let injectorIdParam = switch (injectorIdOpt) { case (?i) i; case null "0" };
+
+      if (key == "") {
+        return {
+          status_code = 400;
+          headers = corsHeaders;
+          body = makeJsonResponse(false, "error", "Missing key parameter");
+          upgrade = null;
+        };
+      };
+
+      let keyEntry = keys.toArray().find(func((_, entry)) { Text.equal(entry.key, key) });
+
+      switch (keyEntry) {
+        case (null) {
+          return { status_code = 200; headers = corsHeaders; body = makeJsonResponse(false, "error", "Key not found"); upgrade = null };
+        };
+        case (?(_, loginKey)) {
+          switch (loginKey.injector) {
+            case (?assignedInjectorId) {
+              if (injectorIdParam != "0" and not Text.equal(assignedInjectorId.toText(), injectorIdParam)) {
+                let injectorName = switch (injectors.get(assignedInjectorId)) {
+                  case (?inj) { inj.name };
+                  case (null) { "Unknown Injector" };
+                };
+                return {
+                  status_code = 200;
+                  headers = corsHeaders;
+                  body = makeJsonResponse(false, "error", "This key is not valid for " # injectorName);
+                  upgrade = null;
+                };
+              };
+            };
+            case (null) {};
+          };
+
+          if (loginKey.blocked) {
+            return { status_code = 200; headers = corsHeaders; body = makeJsonResponse(false, "error", "Key is blocked"); upgrade = null };
+          };
+
+          switch (loginKey.expires) {
+            case (null) {};
+            case (?expires) {
+              if (Time.now() >= expires) {
+                return { status_code = 200; headers = corsHeaders; body = makeJsonResponse(false, "error", "Key has expired"); upgrade = null };
+              };
+            };
+          };
+
+          switch (loginKey.maxDevices) {
+            case (null) {};
+            case (?maxDevices) {
+              if (loginKey.deviceCount >= maxDevices) {
+                return { status_code = 200; headers = corsHeaders; body = makeJsonResponse(false, "error", "Device limit reached"); upgrade = null };
+              };
+            };
+          };
+
+          return { status_code = 200; headers = corsHeaders; body = makeJsonResponse(true, "success", "Key is valid"); upgrade = null };
+        };
+      };
+    };
+
+    { status_code = 404; headers = corsHeaders; body = ("{\"error\":\"Not found\"}").encodeUtf8(); upgrade = null }
+  };
 };

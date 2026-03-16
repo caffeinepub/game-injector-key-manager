@@ -162,18 +162,13 @@ function AdminSidebar({
 
 function Dashboard() {
   const { logout: adminLogout, reAuthenticate } = useAdminAuth();
-  const [isReauthenticating, setIsReauthenticating] = useState(true);
   const { data: panelSettings } = useGetPanelSettings();
   const [panelName, setPanelName] = useState("Game Injector");
   const [activeSection, setActiveSection] = useState<AdminSection>("keys");
   const [showCreateKey, setShowCreateKey] = useState(false);
 
   useEffect(() => {
-    const authenticate = async () => {
-      await reAuthenticate();
-      setIsReauthenticating(false);
-    };
-    authenticate();
+    reAuthenticate(); // fire and forget - no blocking
   }, [reAuthenticate]);
 
   useEffect(() => {
@@ -188,20 +183,6 @@ function Dashboard() {
       }
     }
   }, [panelSettings]);
-
-  if (isReauthenticating) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "#0b0d14" }}
-      >
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 rounded-full border-2 border-purple-600/30 border-t-purple-500 animate-spin mx-auto" />
-          <p className="text-gray-500 text-sm">Authenticating...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div

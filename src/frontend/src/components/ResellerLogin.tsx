@@ -115,7 +115,7 @@ export function ResellerLogin({ onAuthenticated, onBack }: ResellerLoginProps) {
                 required
                 autoComplete="username"
                 autoFocus
-                className="pl-11 bg-white/8 border-white/15 text-white placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500/30 h-12"
+                className="pl-11 bg-white/90 border-white/15 text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500/30 h-12"
               />
             </div>
 
@@ -130,7 +130,7 @@ export function ResellerLogin({ onAuthenticated, onBack }: ResellerLoginProps) {
                 placeholder="Password"
                 required
                 autoComplete="current-password"
-                className="pl-11 pr-11 bg-white/8 border-white/15 text-white placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500/30 h-12"
+                className="pl-11 pr-11 bg-white/90 border-white/15 text-gray-900 placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500/30 h-12"
               />
               <button
                 type="button"
