@@ -9,7 +9,6 @@ import { ResellersSection } from "@/components/ResellersSection";
 import { RoleSelector, type UserRole } from "@/components/RoleSelector";
 import { SettingsSection } from "@/components/SettingsSection";
 import { StatsCards } from "@/components/StatsCards";
-import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { useGetPanelSettings } from "@/hooks/useQueries";
 import {
@@ -17,10 +16,12 @@ import {
   Gamepad2,
   Key,
   LogOut,
+  Menu,
   Plus,
   Settings,
   Shield,
   Users,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ResellerId } from "./backend";
@@ -39,12 +40,18 @@ function AdminSidebar({
   panelName,
   onLogout,
   onCreateKey,
+  sidebarOpen,
+  onToggleSidebar,
+  onCloseSidebar,
 }: {
   activeSection: AdminSection;
   onSectionChange: (s: AdminSection) => void;
   panelName: string;
   onLogout: () => void;
   onCreateKey: () => void;
+  sidebarOpen: boolean;
+  onToggleSidebar: () => void;
+  onCloseSidebar: () => void;
 }) {
   const navItems: { id: AdminSection; label: string; icon: React.ReactNode }[] =
     [
@@ -97,43 +104,74 @@ function AdminSidebar({
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 p-3 space-y-1">
-        <div className="text-xs text-gray-600 uppercase tracking-widest font-bold px-3 pb-2 pt-1">
-          Main
-        </div>
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            data-ocid={`sidebar.${item.id}.link`}
-            onClick={() => onSectionChange(item.id)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-              activeSection === item.id
-                ? "bg-purple-600/20 text-white border border-purple-600/30"
-                : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-            }`}
-          >
-            {item.icon}
-            {item.label}
-          </button>
-        ))}
+      {/* Hamburger button */}
+      <div className="px-4 py-2 border-b border-white/5">
+        <button
+          type="button"
+          data-ocid="sidebar.hamburger.button"
+          onClick={onToggleSidebar}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 border border-transparent transition-all duration-150 w-full"
+        >
+          {sidebarOpen ? (
+            <X className="h-4 w-4" />
+          ) : (
+            <Menu className="h-4 w-4" />
+          )}
+          <span>{sidebarOpen ? "Close Menu" : "Menu"}</span>
+        </button>
+      </div>
 
-        {/* Generate Key shortcut */}
-        <div className="pt-2">
-          <button
-            type="button"
-            data-ocid="sidebar.generate_keys.button"
-            onClick={onCreateKey}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 border border-transparent transition-all duration-150"
-          >
-            <Plus className="h-4 w-4" />
-            Generate Keys
-          </button>
-        </div>
-      </nav>
+      {/* Nav - slides in/out */}
+      <div
+        className="overflow-hidden transition-all duration-300 ease-in-out"
+        style={{ maxHeight: sidebarOpen ? "400px" : "0px" }}
+      >
+        <nav className="p-3 space-y-1">
+          <div className="text-xs text-gray-600 uppercase tracking-widest font-bold px-3 pb-2 pt-1">
+            Main
+          </div>
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              data-ocid={`sidebar.${item.id}.link`}
+              onClick={() => {
+                onSectionChange(item.id);
+                onCloseSidebar();
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                activeSection === item.id
+                  ? "bg-purple-600/20 text-white border border-purple-600/30"
+                  : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+              }`}
+            >
+              {item.icon}
+              {item.label}
+            </button>
+          ))}
 
-      {/* Bottom user + logout */}
+          {/* Generate Key shortcut */}
+          <div className="pt-2">
+            <button
+              type="button"
+              data-ocid="sidebar.generate_keys.button"
+              onClick={() => {
+                onCreateKey();
+                onCloseSidebar();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 border border-transparent transition-all duration-150"
+            >
+              <Plus className="h-4 w-4" />
+              Generate Keys
+            </button>
+          </div>
+        </nav>
+      </div>
+
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Bottom user + logout - always visible */}
       <div className="p-3 border-t border-white/5">
         <div className="flex items-center gap-3 px-2 py-2 mb-2">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
@@ -160,12 +198,13 @@ function AdminSidebar({
   );
 }
 
-function Dashboard() {
-  const { logout: adminLogout, reAuthenticate } = useAdminAuth();
+function Dashboard({ onLogout }: { onLogout: () => void }) {
+  const { reAuthenticate } = useAdminAuth();
   const { data: panelSettings } = useGetPanelSettings();
   const [panelName, setPanelName] = useState("Game Injector");
   const [activeSection, setActiveSection] = useState<AdminSection>("keys");
   const [showCreateKey, setShowCreateKey] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     reAuthenticate(); // fire and forget - no blocking
@@ -193,14 +232,29 @@ function Dashboard() {
         activeSection={activeSection}
         onSectionChange={setActiveSection}
         panelName={panelName}
-        onLogout={adminLogout}
+        onLogout={onLogout}
         onCreateKey={() => {
           setActiveSection("keys");
           setShowCreateKey(true);
         }}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+        onCloseSidebar={() => setSidebarOpen(false)}
       />
 
-      <main className="flex-1 overflow-y-auto">
+      {/* Backdrop overlay */}
+      {sidebarOpen && (
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Close menu"
+          className="absolute inset-0 left-60 bg-black/50 z-10"
+          onClick={() => setSidebarOpen(false)}
+          onKeyDown={(e) => e.key === "Escape" && setSidebarOpen(false)}
+        />
+      )}
+
+      <main className="flex-1 overflow-y-auto relative">
         <div className="p-6 space-y-6">
           {activeSection === "keys" && (
             <>
@@ -266,6 +320,9 @@ export default function App() {
 
   const handleLogout = () => {
     logout();
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("resellerId");
+    localStorage.removeItem("resellerUsername");
     setUserRole(null);
     setResellerId(null);
   };
@@ -295,7 +352,7 @@ export default function App() {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="theme">
-      <Dashboard />
+      <Dashboard onLogout={handleLogout} />
       <Toaster />
     </ThemeProvider>
   );

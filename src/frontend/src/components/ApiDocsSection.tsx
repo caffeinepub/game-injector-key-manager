@@ -8,16 +8,26 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { loadConfig } from "@/config";
 import { Check, Code2, Copy, FileJson, Globe, Terminal } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function ApiDocsSection() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [backendCanisterId, setBackendCanisterId] = useState<string>("");
 
-  // Get the canister ID from the current origin
-  const canisterId = window.location.hostname.split(".")[0];
-  const apiEndpoint = `https://${canisterId}.icp0.io/api/verifyKey`;
+  useEffect(() => {
+    loadConfig().then((cfg) => {
+      if (cfg.backend_canister_id && cfg.backend_canister_id !== "undefined") {
+        setBackendCanisterId(cfg.backend_canister_id);
+      }
+    });
+  }, []);
+
+  const apiEndpoint = backendCanisterId
+    ? `https://${backendCanisterId}.raw.icp0.io/api/verifyKey`
+    : "https://<canister-id>.raw.icp0.io/api/verifyKey";
 
   const copyToClipboard = async (text: string, index: number) => {
     try {
@@ -229,6 +239,11 @@ class InjectorLogin {
               )}
             </Button>
           </div>
+          {backendCanisterId && (
+            <p className="text-xs text-green-500">
+              ✓ Your backend canister ID is auto-detected
+            </p>
+          )}
           <p className="text-sm text-muted-foreground">
             All requests must use POST method with JSON content type
           </p>

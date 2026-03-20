@@ -3,7 +3,7 @@ import {
   useGetPanelSettings,
   useGetResellerById,
 } from "@/hooks/useQueries";
-import { Coins, Key, LogOut, Plus, Shield } from "lucide-react";
+import { Coins, Key, LogOut, Menu, Plus, Shield, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ResellerId } from "../backend";
 import { CreateKeyDialogReseller } from "./CreateKeyDialogReseller";
@@ -24,6 +24,7 @@ export function ResellerDashboard({
   const { data: panelSettings } = useGetPanelSettings();
   const [panelName, setPanelName] = useState("Game Injector");
   const [showCreateKey, setShowCreateKey] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (panelSettings) {
@@ -45,6 +46,13 @@ export function ResellerDashboard({
   const credits = reseller?.credits || BigInt(0);
   const initials = username.slice(0, 2).toUpperCase();
   const canCreate = reseller ? reseller.credits / keyCreditCost : BigInt(0);
+
+  const handleLogout = () => {
+    localStorage.removeItem("resellerUsername");
+    localStorage.removeItem("resellerId");
+    localStorage.removeItem("userRole");
+    onLogout();
+  };
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="theme">
@@ -74,31 +82,60 @@ export function ResellerDashboard({
             </div>
           </div>
 
-          {/* Nav */}
-          <nav className="flex-1 p-3 space-y-1">
-            <div className="text-xs text-gray-600 uppercase tracking-widest font-bold px-3 pb-2 pt-1">
-              Main
-            </div>
+          {/* Hamburger button */}
+          <div className="px-4 py-2 border-b border-white/5">
             <button
               type="button"
-              data-ocid="reseller_sidebar.keys.link"
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-purple-600/20 text-white border border-purple-600/30 transition-all duration-150"
+              data-ocid="reseller_sidebar.hamburger.button"
+              onClick={() => setSidebarOpen((prev) => !prev)}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 border border-transparent transition-all duration-150 w-full"
             >
-              <Key className="h-4 w-4" />
-              License Manager
+              {sidebarOpen ? (
+                <X className="h-4 w-4" />
+              ) : (
+                <Menu className="h-4 w-4" />
+              )}
+              <span>{sidebarOpen ? "Close Menu" : "Menu"}</span>
             </button>
-            <button
-              type="button"
-              data-ocid="reseller_sidebar.generate_keys.button"
-              onClick={() => setShowCreateKey(true)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 border border-transparent transition-all duration-150"
-            >
-              <Plus className="h-4 w-4" />
-              Generate Keys
-            </button>
-          </nav>
+          </div>
 
-          {/* Bottom */}
+          {/* Nav - slides in/out */}
+          <div
+            className="overflow-hidden transition-all duration-300 ease-in-out"
+            style={{ maxHeight: sidebarOpen ? "200px" : "0px" }}
+          >
+            <nav className="p-3 space-y-1">
+              <div className="text-xs text-gray-600 uppercase tracking-widest font-bold px-3 pb-2 pt-1">
+                Main
+              </div>
+              <button
+                type="button"
+                data-ocid="reseller_sidebar.keys.link"
+                onClick={() => setSidebarOpen(false)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-purple-600/20 text-white border border-purple-600/30 transition-all duration-150"
+              >
+                <Key className="h-4 w-4" />
+                License Manager
+              </button>
+              <button
+                type="button"
+                data-ocid="reseller_sidebar.generate_keys.button"
+                onClick={() => {
+                  setShowCreateKey(true);
+                  setSidebarOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 border border-transparent transition-all duration-150"
+              >
+                <Plus className="h-4 w-4" />
+                Generate Keys
+              </button>
+            </nav>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Bottom - always visible */}
           <div className="p-3 border-t border-white/5">
             {/* User info */}
             <div
@@ -134,7 +171,7 @@ export function ResellerDashboard({
             <button
               type="button"
               data-ocid="reseller_sidebar.logout.button"
-              onClick={onLogout}
+              onClick={handleLogout}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-900/20 border border-red-800/30 hover:border-red-700/50 transition-all duration-150"
             >
               <LogOut className="h-4 w-4" />
@@ -143,8 +180,20 @@ export function ResellerDashboard({
           </div>
         </aside>
 
+        {/* Backdrop overlay */}
+        {sidebarOpen && (
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="Close menu"
+            className="absolute inset-0 left-60 bg-black/50 z-10"
+            onClick={() => setSidebarOpen(false)}
+            onKeyDown={(e) => e.key === "Escape" && setSidebarOpen(false)}
+          />
+        )}
+
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto relative">
           <div className="p-6 space-y-6">
             {/* Page header */}
             <div className="flex items-center justify-between">
